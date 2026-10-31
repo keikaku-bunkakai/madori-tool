@@ -10,6 +10,10 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
   <style>
     body { font-family: 'Noto Sans JP', 'Inter', sans-serif; }
+    .rot-handle { cursor: pointer; }
+    .rot-handle .rot-icon { opacity: 0; transition: opacity .08s; }
+    .rot-handle:hover .rot-icon { opacity: 1; }
+    .rot-handle:hover .rot-dot { opacity: 0; }
     .grid-bg {
       background-size: 24px 24px;
       background-image: 
@@ -38,6 +42,7 @@
     #planSvg { touch-action: none; -webkit-touch-callout: none; }
     body { -webkit-tap-highlight-color: transparent; overscroll-behavior: none; }
     #mobileBackdrop { display: none; }
+    #mobTabBar { display: none; }
     @media (max-width: 767px) {
       header { height: 44px !important; padding: 0 6px !important; gap: 4px; overflow-x: auto; scrollbar-width: none; }
       header::-webkit-scrollbar { display: none; }
@@ -65,6 +70,56 @@
       #shapeControlsBadge button { font-size: 10px !important; padding: 2px 6px !important; }
       #canvasContainer { padding: 6px !important; }
       #rightAside .text-sm { font-size: 12px; }
+
+      /* ---- スマホ: ヘッダーを2段にして全ボタンを見える位置へ ---- */
+      header { height: auto !important; min-height: 44px; flex-wrap: wrap !important; overflow: visible !important; justify-content: center; row-gap: 4px; padding: 4px 6px !important; }
+      header > div:last-child { flex-wrap: wrap; width: 100%; justify-content: center; margin: 0 !important; }
+      #mobLeftBtn { display: none !important; }
+      #leftAside, #rightAside { top: var(--hdr-h, 44px) !important; }
+      #leftAside { top: auto !important; }
+      #mobileBackdrop.mob-show { inset: var(--hdr-h, 44px) 0 0 0; }
+
+      /* ---- スマホ: パレットは画面下部のタブ+コンパクトなボタン一覧 ---- */
+      #leftAside {
+        left: 0 !important; right: 0 !important; bottom: 0 !important; width: 100% !important; max-width: none !important;
+        height: auto !important; transform: none !important; border-right: 0 !important;
+        border-top: 1px solid #334155; box-shadow: 0 -6px 18px rgba(0,0,0,.5); z-index: 35 !important;
+      }
+      #leftAside #leftFoot { display: none !important; }
+      #leftAside #leftScroll, #leftAside #leftHead { display: none; }
+      #leftAside [data-sec] { display: none !important; }
+      #leftAside[data-mob-tab] #leftScroll { display: block; max-height: 38vh; padding: 8px !important; }
+      #leftAside[data-mob-tab="setting"] #leftHead { max-height: 38vh; overflow-y: auto; border-bottom: 0; }
+      #leftAside[data-mob-tab="setting"] #leftScroll { display: none; }
+      #leftAside[data-mob-tab="room"] [data-sec="room"],
+      #leftAside[data-mob-tab="exterior"] [data-sec="exterior"],
+      #leftAside[data-mob-tab="fitting"] [data-sec="fitting"],
+      #leftAside[data-mob-tab="equipment"] [data-sec="equipment"],
+      #leftAside[data-mob-tab="setting"] [data-sec="setting"],
+      #leftAside[data-mob-tab="flow"] [data-sec="flow"] { display: block !important; border-top: 0 !important; padding-top: 0 !important; }
+      #leftAside .palette-toggle { display: none !important; }
+      #roomPaletteBody, #exteriorPaletteBody, #fittingPaletteBody, #equipmentPaletteBody { display: block !important; }
+      #leftAside #roomPaletteList, #leftAside #exteriorPaletteList, #leftAside #fittingPaletteList, #leftAside #equipmentPaletteList {
+        display: grid !important; grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); gap: 6px !important;
+      }
+      #leftAside .grid > button, #leftAside .grid > div[role="button"] {
+        flex-direction: column !important; align-items: center !important; justify-content: center !important;
+        padding: 5px 3px !important; gap: 2px; text-align: center; min-height: 58px; border-radius: 10px !important;
+      }
+      #leftAside .grid > * > div { flex-direction: column; align-items: center; gap: 2px !important; width: 100%; }
+      #leftAside .grid > * > div > span { font-size: 18px !important; padding: 3px 6px !important; }
+      #leftAside .grid > * > div > div > div:first-child { font-size: 10px !important; line-height: 1.2; white-space: normal; }
+      #leftAside .grid > * > div > div > div:nth-child(2) { display: none; }
+      #leftAside .grid > * > span { display: none; }
+      #leftAside .grid select { font-size: 11px !important; margin: 2px 0 0 0 !important; max-width: 100%; }
+      #leftAside [data-sec] p { font-size: 10px; }
+      #mobTabBar { display: flex; gap: 2px; padding: 4px; background: #020617; border-top: 1px solid #1e293b; order: 9; }
+      #mobTabBar button {
+        flex: 1 1 0; min-width: 0; height: 40px; font-size: 10px; line-height: 1.15; color: #cbd5e1; background: #0f172a;
+        border: 1px solid #1e293b; border-radius: 8px; padding: 0 1px; white-space: nowrap;
+      }
+      #mobTabBar button.on { background: #4f46e5; color: #fff; border-color: #818cf8; font-weight: 700; }
+      main { padding-bottom: 50px; }
     }
 
   </style>
@@ -79,6 +134,7 @@
       <div>
         <h1 class="font-bold text-sm sm:text-base text-white tracking-wide flex items-center gap-2">
           住宅間取り作成トレーニング <span class="bg-indigo-500/20 text-indigo-400 text-xs px-2 py-0.5 rounded border border-indigo-500/30 font-semibold">Pro v3.0</span>
+          <span id="moduleBadge" class="bg-emerald-500/15 text-emerald-300 text-[10px] sm:text-xs px-2 py-0.5 rounded border border-emerald-500/30 font-semibold whitespace-nowrap">尺モジュール 910mm</span>
         </h1>
       </div>
     </div>
@@ -136,7 +192,7 @@
     
     <!-- Left Sidebar: Room Palette -->
     <aside id="leftAside" class="w-72 bg-slate-950 border-r border-slate-800 flex flex-col z-10 shrink-0">
-      <div class="p-3 border-b border-slate-800 space-y-3">
+      <div id="leftHead" data-sec="setting" class="p-3 border-b border-slate-800 space-y-3">
         <div>
           <div class="text-[11px] font-semibold text-slate-400 mb-1">フロア選択</div>
           <div id="floorBtnGroup" class="grid grid-cols-3 gap-1 bg-slate-900 p-1 rounded-lg border border-slate-800"></div>
@@ -161,40 +217,42 @@
       </div>
 
       <!-- Room Parts Palette -->
-      <div class="flex-1 overflow-y-auto custom-scrollbar p-3 space-y-3">
+      <div id="leftScroll" class="flex-1 overflow-y-auto custom-scrollbar p-3 space-y-3">
+        <div data-sec="room">
         <button type="button" class="palette-toggle w-full flex items-center justify-between text-xs font-semibold text-slate-400 tracking-wider hover:text-slate-200 transition " data-target="roomPaletteBody" aria-expanded="true"><span>部屋パーツパレット (選んでマス目塗り)</span><span class="palette-chevron transition-transform">▼</span></button>
         <div id="roomPaletteBody"><div id="roomPaletteList" class="grid grid-cols-1 gap-1.5"></div></div>
+        </div>
 
         <!-- Exterior (外構) Parts Palette -->
-        <div class="pt-3 border-t border-slate-800/80">
+        <div data-sec="exterior" class="pt-3 border-t border-slate-800/80">
           <button type="button" class="palette-toggle w-full flex items-center justify-between text-xs font-semibold text-slate-400 tracking-wider hover:text-slate-200 transition mb-1.5" data-target="exteriorPaletteBody" aria-expanded="true"><span>外構パーツパレット (面は選んでマス目塗り)</span><span class="palette-chevron transition-transform">▼</span></button>
           <div id="exteriorPaletteBody"><div id="exteriorPaletteList" class="grid grid-cols-1 gap-1.5"></div></div>
         </div>
 
         <!-- Fittings (建具) Parts Palette -->
-        <div class="pt-3 border-t border-slate-800/80">
+        <div data-sec="fitting" class="pt-3 border-t border-slate-800/80">
           <button type="button" class="palette-toggle w-full flex items-center justify-between text-xs font-semibold text-slate-400 tracking-wider hover:text-slate-200 transition mb-1.5" data-target="fittingPaletteBody" aria-expanded="true"><span>建具パーツパレット (クリックで配置)</span><span class="palette-chevron transition-transform">▼</span></button>
           <div id="fittingPaletteBody">
             <div id="fittingPaletteList" class="grid grid-cols-1 gap-1.5"></div>
             <p class="text-[10px] text-slate-500 leading-relaxed mt-1.5">
-              配置後、選択すると🔄向き変更・🗑削除に加え、種別ごとの専用ボタン(前後・吊元・開口側・幅調整)が表示されます。
+              配置後、選択すると🗑削除に加え、種別ごとの専用ボタン(前後・吊元・開口側・幅調整)が表示されます。各辺の中央の点に近づけると↻が現れ、クリックで90度回転します。
             </p>
           </div>
         </div>
 
         <!-- Equipment (設備) Parts Palette -->
-        <div class="pt-3 border-t border-slate-800/80">
+        <div data-sec="equipment" class="pt-3 border-t border-slate-800/80">
           <button type="button" class="palette-toggle w-full flex items-center justify-between text-xs font-semibold text-slate-400 tracking-wider hover:text-slate-200 transition mb-1.5" data-target="equipmentPaletteBody" aria-expanded="true"><span>設備パーツパレット (クリックで寸法指定→配置)</span><span class="palette-chevron transition-transform">▼</span></button>
           <div id="equipmentPaletteBody">
             <div id="equipmentPaletteList" class="grid grid-cols-1 gap-1.5"></div>
             <p class="text-[10px] text-slate-500 leading-relaxed mt-1.5">
-              配置後、選択すると🗑削除・🔄90度回転・📐寸法編集(mm指定)が行えます。
+              配置後、選択すると🗑削除・📐寸法編集(mm指定)が行えます。各辺の中央の点にカーソルを近づけると↻が現れ、クリックで90度回転(中心まわり)します。
             </p>
           </div>
         </div>
 
         <!-- Flow Lines (動線作図) -->
-        <div class="pt-3 border-t border-slate-800/80">
+        <div data-sec="flow" class="pt-3 border-t border-slate-800/80">
           <div class="text-xs font-semibold text-slate-400 mb-2">動線作図</div>
           <div class="bg-slate-900/80 p-2.5 rounded-lg border border-slate-800 space-y-2">
             <p class="text-[11px] text-slate-400 leading-relaxed">
@@ -216,8 +274,17 @@
         </div>
       </div>
 
-      <div class="p-3 border-t border-slate-800 text-[11px] text-slate-500 bg-slate-950/80">
-        操作: ドラッグ移動 / 敷地は✥ボタンで移動 / 角ドラッグでリサイズ / 角ボタンで回転・削除 / ホイールでズーム
+      <div id="leftFoot" class="p-3 border-t border-slate-800 text-[11px] text-slate-500 bg-slate-950/80">
+        操作: ドラッグ移動 / 敷地は✥ボタンで移動 / 角ドラッグでリサイズ / 辺の中央の↻で回転 / ホイールでズーム
+      </div>
+      <!-- スマホ用: 画面下部のパレット切替タブ -->
+      <div id="mobTabBar" role="tablist">
+        <button type="button" data-mobtab="room">🏠 部屋</button>
+        <button type="button" data-mobtab="exterior">🌳 外構</button>
+        <button type="button" data-mobtab="fitting">🚪 建具</button>
+        <button type="button" data-mobtab="equipment">🚰 設備</button>
+        <button type="button" data-mobtab="flow">➰ 動線</button>
+        <button type="button" data-mobtab="setting">⚙ 階・表示</button>
       </div>
     </aside>
 
@@ -230,6 +297,7 @@
           <div class="flex items-center gap-2">
             <span class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
             <span id="canvasFloorLabel" class="font-bold text-xs sm:text-sm text-slate-200">1階 キャンバス</span>
+            <span id="moduleBadgeMob" class="md:hidden text-[10px] text-emerald-300 bg-emerald-500/15 border border-emerald-500/30 rounded px-1.5 py-0.5 whitespace-nowrap">尺モジュール 910mm</span>
           </div>
           <span class="text-slate-700">|</span>
           <span id="modeStatusBadge" class="text-xs text-indigo-400 font-semibold bg-indigo-500/10 px-2.5 py-1 rounded border border-indigo-500/20">通常選択モード</span>
@@ -301,8 +369,10 @@
             <g id="underlayGroup" opacity="0.25"></g>
             <g id="siteGroup"></g>
             <g id="roomsGroup"></g>
-            <g id="fittingsGroup"></g>
+            <g id="wallsGroup" pointer-events="none"></g>
             <g id="equipmentGroup"></g>
+            <g id="roomLabelsGroup" pointer-events="none"></g>
+            <g id="fittingsGroup"></g>
             <g id="flowGroup" pointer-events="none"></g>
             <g id="ghostGroup"></g>
             <g id="controlsGroup"></g>
@@ -466,7 +536,7 @@
 
   <!-- Site Settings Modal -->
   <div id="siteModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-    <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-md w-full p-5 shadow-2xl space-y-4">
+    <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-md w-full p-5 shadow-2xl space-y-4 max-h-[92vh] overflow-y-auto">
       <div class="flex items-center justify-between border-b border-slate-800 pb-3">
         <h3 class="font-bold text-base text-white flex items-center gap-2">
           <span>🏞️ 敷地サイズ・敷地条件の設定</span>
@@ -475,8 +545,40 @@
       </div>
 
       <div class="space-y-4 text-xs">
+        <!-- Site Pattern -->
+        <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-1.5">
+          <label class="block font-semibold text-slate-300">敷地のパターン (接道条件)</label>
+          <div class="text-[10px] text-slate-500">整形地（1面接道）</div>
+          <div class="grid grid-cols-4 gap-1.5">
+            <button type="button" data-pattern="south" class="pattern-btn bg-slate-800 text-slate-300 p-1.5 rounded-lg font-medium text-center border border-slate-700 hover:text-white text-[11px]">南道路</button>
+            <button type="button" data-pattern="north" class="pattern-btn bg-slate-800 text-slate-300 p-1.5 rounded-lg font-medium text-center border border-slate-700 hover:text-white text-[11px]">北道路</button>
+            <button type="button" data-pattern="east" class="pattern-btn bg-slate-800 text-slate-300 p-1.5 rounded-lg font-medium text-center border border-slate-700 hover:text-white text-[11px]">東道路</button>
+            <button type="button" data-pattern="west" class="pattern-btn bg-slate-800 text-slate-300 p-1.5 rounded-lg font-medium text-center border border-slate-700 hover:text-white text-[11px]">西道路</button>
+          </div>
+          <div class="text-[10px] text-slate-500 pt-1">角地（2面接道）</div>
+          <div class="grid grid-cols-4 gap-1.5">
+            <button type="button" data-pattern="se_corner" class="pattern-btn bg-slate-800 text-slate-300 p-1.5 rounded-lg font-medium text-center border border-slate-700 hover:text-white text-[11px]">南東角地</button>
+            <button type="button" data-pattern="sw_corner" class="pattern-btn bg-slate-800 text-slate-300 p-1.5 rounded-lg font-medium text-center border border-slate-700 hover:text-white text-[11px]">南西角地</button>
+            <button type="button" data-pattern="ne_corner" class="pattern-btn bg-slate-800 text-slate-300 p-1.5 rounded-lg font-medium text-center border border-slate-700 hover:text-white text-[11px]">北東角地</button>
+            <button type="button" data-pattern="nw_corner" class="pattern-btn bg-slate-800 text-slate-300 p-1.5 rounded-lg font-medium text-center border border-slate-700 hover:text-white text-[11px]">北西角地</button>
+          </div>
+          <div class="text-[10px] text-slate-500 pt-1">二方道路（対面2面接道）</div>
+          <div class="grid grid-cols-2 gap-1.5">
+            <button type="button" data-pattern="ns_through" class="pattern-btn bg-slate-800 text-slate-300 p-1.5 rounded-lg font-medium text-center border border-slate-700 hover:text-white text-[11px]">南北二方道路</button>
+            <button type="button" data-pattern="ew_through" class="pattern-btn bg-slate-800 text-slate-300 p-1.5 rounded-lg font-medium text-center border border-slate-700 hover:text-white text-[11px]">東西二方道路</button>
+          </div>
+          <div class="text-[10px] text-slate-500 pt-1">変形地</div>
+          <div class="grid grid-cols-3 gap-1.5">
+            <button type="button" data-pattern="flag" class="pattern-btn bg-slate-800 text-slate-300 p-1.5 rounded-lg font-medium text-center border border-slate-700 hover:text-white text-[11px]">旗竿地</button>
+            <button type="button" data-pattern="narrow_s" class="pattern-btn bg-slate-800 text-slate-300 p-1.5 rounded-lg font-medium text-center border border-slate-700 hover:text-white text-[11px]">縦長(南道路)</button>
+            <button type="button" data-pattern="narrow_n" class="pattern-btn bg-slate-800 text-slate-300 p-1.5 rounded-lg font-medium text-center border border-slate-700 hover:text-white text-[11px]">縦長(北道路)</button>
+            <button type="button" data-pattern="wide_e" class="pattern-btn bg-slate-800 text-slate-300 p-1.5 rounded-lg font-medium text-center border border-slate-700 hover:text-white text-[11px]">横長(東道路)</button>
+            <button type="button" data-pattern="wide_w" class="pattern-btn bg-slate-800 text-slate-300 p-1.5 rounded-lg font-medium text-center border border-slate-700 hover:text-white text-[11px]">横長(西道路)</button>
+          </div>
+        </div>
+
         <!-- Site Width & Depth -->
-        <div class="space-y-3 bg-slate-950 p-3 rounded-xl border border-slate-800">
+        <div id="siteStdSizeBlock" class="space-y-3 bg-slate-950 p-3 rounded-xl border border-slate-800">
           <div>
             <div class="flex justify-between font-medium text-slate-300 mb-1">
               <span>間口 (敷地の横幅):</span>
@@ -494,6 +596,46 @@
           </div>
         </div>
 
+        <!-- Flag lot dimensions -->
+        <div id="siteFlagBlock" class="hidden space-y-3 bg-slate-950 p-3 rounded-xl border border-slate-800">
+          <div>
+            <div class="flex justify-between font-medium text-slate-300 mb-1">
+              <span>旗部分の幅 (横):</span>
+              <span id="flagWDisp" class="font-bold text-emerald-400"></span>
+            </div>
+            <input type="range" id="flagWInput" min="5" max="14" step="1" value="8" class="w-full accent-emerald-500 cursor-pointer">
+          </div>
+          <div>
+            <div class="flex justify-between font-medium text-slate-300 mb-1">
+              <span>旗部分の奥行き (縦):</span>
+              <span id="flagHDisp" class="font-bold text-emerald-400"></span>
+            </div>
+            <input type="range" id="flagHInput" min="5" max="14" step="1" value="8" class="w-full accent-emerald-500 cursor-pointer">
+          </div>
+          <div>
+            <div class="flex justify-between font-medium text-slate-300 mb-1">
+              <span>竿の幅 (接道間口):</span>
+              <span id="poleWDisp" class="font-bold text-emerald-400"></span>
+            </div>
+            <input type="range" id="poleWInput" min="3" max="6" step="1" value="4" class="w-full accent-emerald-500 cursor-pointer">
+          </div>
+          <div>
+            <div class="flex justify-between font-medium text-slate-300 mb-1">
+              <span>竿の位置 (左端から):</span>
+              <span id="poleXDisp" class="font-bold text-emerald-400"></span>
+            </div>
+            <input type="range" id="poleXInput" min="0" max="10" step="1" value="0" class="w-full accent-emerald-500 cursor-pointer">
+          </div>
+          <div>
+            <div class="flex justify-between font-medium text-slate-300 mb-1">
+              <span>竿の長さ (道路まで):</span>
+              <span id="poleHDisp" class="font-bold text-emerald-400"></span>
+            </div>
+            <input type="range" id="poleHInput" min="2" max="10" step="1" value="5" class="w-full accent-emerald-500 cursor-pointer">
+          </div>
+          <p class="text-[10px] text-slate-500">※竿幅は接道義務(2m以上)を満たすため3マス以上とします。</p>
+        </div>
+
         <!-- Grid Module Selection -->
         <div>
           <label class="block font-semibold text-slate-300 mb-1.5">マス目モジュール (1マスの実寸)</label>
@@ -509,24 +651,40 @@
           <p class="text-[10px] text-slate-500 mt-1.5">※途中でモジュールを変更しても、マス数はそのままで実寸・面積表示のみ再計算されます。</p>
         </div>
 
-        <!-- Road Facing Direction -->
-        <div>
-          <label class="block font-semibold text-slate-300 mb-1.5">接道方位 (道路の位置)</label>
-          <div class="grid grid-cols-4 gap-2">
-            <button type="button" data-road="south" class="road-btn bg-emerald-600 text-white p-2 rounded-lg font-medium text-center border border-emerald-500">南道路</button>
-            <button type="button" data-road="north" class="road-btn bg-slate-800 text-slate-300 p-2 rounded-lg font-medium text-center border border-slate-700 hover:text-white">北道路</button>
-            <button type="button" data-road="east" class="road-btn bg-slate-800 text-slate-300 p-2 rounded-lg font-medium text-center border border-slate-700 hover:text-white">東道路</button>
-            <button type="button" data-road="west" class="road-btn bg-slate-800 text-slate-300 p-2 rounded-lg font-medium text-center border border-slate-700 hover:text-white">西道路</button>
+        <!-- Road Width (per road) -->
+        <div class="space-y-2">
+          <label class="block font-semibold text-slate-300">接道する道路の幅員</label>
+          <div id="roadWidthGroupS" class="hidden">
+            <div class="text-slate-400 mb-1">南道路の幅員</div>
+            <div class="grid grid-cols-3 gap-2">
+              <button type="button" data-rdir="S" data-roadwidth="6" class="roadw-btn bg-slate-800 text-slate-300 p-2 rounded-lg font-medium text-center border border-slate-700 hover:text-white">6m</button>
+              <button type="button" data-rdir="S" data-roadwidth="4" class="roadw-btn bg-slate-800 text-slate-300 p-2 rounded-lg font-medium text-center border border-slate-700 hover:text-white">4m</button>
+              <button type="button" data-rdir="S" data-roadwidth="3" class="roadw-btn bg-slate-800 text-slate-300 p-2 rounded-lg font-medium text-center border border-slate-700 hover:text-white">3m</button>
+            </div>
           </div>
-        </div>
-
-        <!-- Road Width -->
-        <div>
-          <label class="block font-semibold text-slate-300 mb-1.5">前面道路の幅員</label>
-          <div class="grid grid-cols-3 gap-2">
-            <button type="button" data-roadwidth="6" class="roadw-btn bg-emerald-600 text-white p-2 rounded-lg font-medium text-center border border-emerald-500">6m</button>
-            <button type="button" data-roadwidth="4" class="roadw-btn bg-slate-800 text-slate-300 p-2 rounded-lg font-medium text-center border border-slate-700 hover:text-white">4m</button>
-            <button type="button" data-roadwidth="3" class="roadw-btn bg-slate-800 text-slate-300 p-2 rounded-lg font-medium text-center border border-slate-700 hover:text-white">3m</button>
+          <div id="roadWidthGroupN" class="hidden">
+            <div class="text-slate-400 mb-1">北道路の幅員</div>
+            <div class="grid grid-cols-3 gap-2">
+              <button type="button" data-rdir="N" data-roadwidth="6" class="roadw-btn bg-slate-800 text-slate-300 p-2 rounded-lg font-medium text-center border border-slate-700 hover:text-white">6m</button>
+              <button type="button" data-rdir="N" data-roadwidth="4" class="roadw-btn bg-slate-800 text-slate-300 p-2 rounded-lg font-medium text-center border border-slate-700 hover:text-white">4m</button>
+              <button type="button" data-rdir="N" data-roadwidth="3" class="roadw-btn bg-slate-800 text-slate-300 p-2 rounded-lg font-medium text-center border border-slate-700 hover:text-white">3m</button>
+            </div>
+          </div>
+          <div id="roadWidthGroupE" class="hidden">
+            <div class="text-slate-400 mb-1">東道路の幅員</div>
+            <div class="grid grid-cols-3 gap-2">
+              <button type="button" data-rdir="E" data-roadwidth="6" class="roadw-btn bg-slate-800 text-slate-300 p-2 rounded-lg font-medium text-center border border-slate-700 hover:text-white">6m</button>
+              <button type="button" data-rdir="E" data-roadwidth="4" class="roadw-btn bg-slate-800 text-slate-300 p-2 rounded-lg font-medium text-center border border-slate-700 hover:text-white">4m</button>
+              <button type="button" data-rdir="E" data-roadwidth="3" class="roadw-btn bg-slate-800 text-slate-300 p-2 rounded-lg font-medium text-center border border-slate-700 hover:text-white">3m</button>
+            </div>
+          </div>
+          <div id="roadWidthGroupW" class="hidden">
+            <div class="text-slate-400 mb-1">西道路の幅員</div>
+            <div class="grid grid-cols-3 gap-2">
+              <button type="button" data-rdir="W" data-roadwidth="6" class="roadw-btn bg-slate-800 text-slate-300 p-2 rounded-lg font-medium text-center border border-slate-700 hover:text-white">6m</button>
+              <button type="button" data-rdir="W" data-roadwidth="4" class="roadw-btn bg-slate-800 text-slate-300 p-2 rounded-lg font-medium text-center border border-slate-700 hover:text-white">4m</button>
+              <button type="button" data-rdir="W" data-roadwidth="3" class="roadw-btn bg-slate-800 text-slate-300 p-2 rounded-lg font-medium text-center border border-slate-700 hover:text-white">3m</button>
+            </div>
           </div>
           <p id="setbackInfoText" class="text-[10px] text-slate-500 mt-1.5">※幅員4m以上は後退なし。</p>
         </div>
@@ -724,11 +882,11 @@
     // --- EQUIPMENT (設備) PARTS DEFINITIONS & PALETTE DATA ---
     // 設備パーツはグリッドに縛られず、実寸(mm)で奥行き・幅をそれぞれ指定できる
     const EQUIPMENT_TYPES = {
-      SINK: { name: "シンク", icon: "🚰", color: "#0ea5e9", border: "#0369a1", defaultDepthMm: 650, defaultWidthMm: 1820 },
+      SINK: { name: "シンク", icon: "🚰", color: "#ffffff", border: "#94a3b8", defaultDepthMm: 650, defaultWidthMm: 1820, widthOptions: [1820, 2730] },
       // fixedSize: true は寸法を変更できない固定サイズのパーツ / compact: true は小さなパーツ向けの表示(文字を省略)
-      TOILET_BOWL: { name: "洋式便器", icon: "🚽", color: "#e2e8f0", border: "#64748b", defaultDepthMm: 700, defaultWidthMm: 400, fixedSize: true, compact: true },
-      WASHBASIN: { name: "洗面台", icon: "🧼", color: "#5eead4", border: "#0f766e", defaultDepthMm: 450, defaultWidthMm: 650, compact: true },
-      UNIT_BATH: { name: "ユニットバス", icon: "🛁", color: "#a5b4fc", border: "#4338ca", defaultDepthMm: 1000, defaultWidthMm: 1700, fixedSize: true, compact: true }
+      TOILET_BOWL: { name: "洋式便器", icon: "🚽", color: "#e2e8f0", border: "#64748b", defaultDepthMm: 700, defaultWidthMm: 400, compact: true },
+      WASHBASIN: { name: "洗面台", icon: "🧼", color: "#5eead4", border: "#0f766e", defaultDepthMm: 650, defaultWidthMm: 780, compact: true },
+      UNIT_BATH: { name: "ユニットバス", icon: "🛁", color: "#a5b4fc", border: "#4338ca", defaultDepthMm: 1820, defaultWidthMm: 1820, compact: true }
     };
 
     // 門扉・塀: 面ではなく境界線として扱うため、部屋パーツ(面)ではなく建具パーツと同じ
@@ -804,6 +962,19 @@
     function cellsToJyo(cells) {
       // 畳数はマス目のモジュール(尺/メーター)に関わらず「1マス = 0.5畳」の慣例値で算出する
       return cells * 0.5;
+    }
+    // 畳数(1マス=0.5畳)から現在のモジュールの実寸面積(㎡)へ。メーターモジュールは1マス=1㎡
+    function jyoToSqm(jyo) {
+      return cellsToSqm(jyo * 2);
+    }
+    function moduleBadgeText() {
+      const mm = Math.round(appState.gridUnitM * 1000);
+      if (appState.gridModule === 'meter') return `メーターモジュール ${mm}mm`;
+      if (appState.gridModule === 'custom') return `カスタム ${mm}mm`;
+      return `尺モジュール ${mm}mm`;
+    }
+    function updateModuleBadge() {
+      ["moduleBadge", "moduleBadgeMob"].forEach(id => { const el = document.getElementById(id); if (el) el.textContent = moduleBadgeText(); });
     }
     function gridLenToM(units) {
       return units * appState.gridUnitM;
@@ -914,8 +1085,11 @@
         height: 12,   // 12 grid units = 10.92m
         offsetX: 10,  // Top-left grid X (低解像度の画面でも右に見切れないよう左寄せ。新規パーツは敷地の左6マスに出るため、左に約10マスの余白を確保)
         offsetY: 6,   // Top-left grid Y
-        roadSide: 'south', // 'south', 'north', 'east', 'west'
-        roadWidth: 6      // 前面道路の幅員(m): 6 | 4 | 3
+        roadSide: 'south', // 主たる道路の方位(互換用)。実際の接道条件は pattern / roadWidths
+        roadWidth: 6,     // 主たる道路の幅員(互換用)
+        pattern: 'south', // 敷地パターン(整形地・角地・二方道路・旗竿地・縦長・横長)
+        roadWidths: { S: 6, N: 6, E: 6, W: 6 }, // 方位ごとの道路幅員(m): 6 | 4 | 3
+        flag: { w: 8, h: 8, poleW: 4, poleX: 0, poleH: 5 } // 旗竿地の寸法(マス)
       },
       compassAngle: 0, // 方位角(度): 0 = 画面上側が北(矢印の尖った先端が向く方向)
       gridModule: 'shaku', // 'shaku' (尺モジュール 910mm) | 'meter' (メーターモジュール 1000mm) | 'custom'
@@ -928,6 +1102,9 @@
       const d = FITTING_TYPES[key];
       return d.multiLeaf ? Math.max(d.defaultWidthUnits, fittingSlidePref[key] || 2) : d.defaultWidthUnits;
     }
+    let equipPlaceKey = null;   // 設備パレットで選択中の設備種別(ポインタに追随して配置)
+    let equipPlaceWidth = 0;
+    let equipHover = null;      // {x,y}(マス単位・左上)
     let fittingPlaceKey = null; // 建具パレットで選択中の建具種別(壁に沿ってドラッグ配置)
     let fittingHover = null;    // 配置プレビュー {orientation,x,y}
     let fittingLock = null;     // ドラッグ中に固定する壁 {orientation,line}
@@ -940,7 +1117,7 @@
     let paintedCells = new Set();
 
     // DOM Elements
-    let planSvg, underlayGroup, siteGroup, roomsGroup, fittingsGroup, equipmentGroup, ghostGroup, controlsGroup;
+    let planSvg, underlayGroup, siteGroup, roomsGroup, roomLabelsGroup, fittingsGroup, equipmentGroup, ghostGroup, controlsGroup;
     let modeSelectPaintBtn, modeSelectEraserBtn;
     let eraseStrokeSaved = false;
     let sidebarPaintModeBtn;
@@ -950,8 +1127,9 @@
     let siteModal, siteWidthInput, siteHeightInput, siteWidthDisp, siteHeightDisp, modalSiteAreaText;
     let gridUnitCustomInput, gridUnitCurrentText;
     let compassModal, compassAngleInput, compassAngleDisp, compassModalArrowGroup, compassModalCardinalText;
-    let selectedRoadSide = 'south';
-    let selectedRoadWidth = 6;
+    let selectedPattern = 'south';
+    let selectedRoadWidths = { S: 6, N: 6, E: 6, W: 6 };
+    let selectedFlag = { w: 8, h: 8, poleW: 4, poleX: 0, poleH: 5 };
     let selectedGridModule = 'shaku';
     let selectedGridUnitM = 0.91;
 
@@ -961,14 +1139,72 @@
     const SETBACK_TOLERANCE = 0.1; // マス単位の許容誤差(0.5マス刻みで操作した際の端数吸収)
     let lastSetbackToastAt = 0;
 
-    function getRoadWidthM(site) {
-      const s = site || appState.site;
-      return s.roadWidth || 6;
+    // --- 敷地パターン(整形地・角地・二方道路・変形地) ---
+    const SITE_PATTERNS = {
+      south:      { label: '南道路', roads: ['S'] },
+      north:      { label: '北道路', roads: ['N'] },
+      east:       { label: '東道路', roads: ['E'] },
+      west:       { label: '西道路', roads: ['W'] },
+      se_corner:  { label: '南東角地', roads: ['S', 'E'], corner: 'se' },
+      sw_corner:  { label: '南西角地', roads: ['S', 'W'], corner: 'sw' },
+      ne_corner:  { label: '北東角地', roads: ['N', 'E'], corner: 'ne' },
+      nw_corner:  { label: '北西角地', roads: ['N', 'W'], corner: 'nw' },
+      ns_through: { label: '南北二方道路', roads: ['S', 'N'] },
+      ew_through: { label: '東西二方道路', roads: ['E', 'W'] },
+      flag:       { label: '旗竿地(南道路)', roads: ['S'] },
+      narrow_s:   { label: '縦長敷地(南道路)', roads: ['S'] },
+      narrow_n:   { label: '縦長敷地(北道路)', roads: ['N'] },
+      wide_e:     { label: '横長敷地(東道路)', roads: ['E'] },
+      wide_w:     { label: '横長敷地(西道路)', roads: ['W'] }
+    };
+    const ROAD_DIR_NAME = { S: '南', N: '北', E: '東', W: '西' };
+    const ROAD_DIR_SIDE = { S: 'south', N: 'north', E: 'east', W: 'west' };
+    const CORNER_CUT_CELLS = 2; // 隅切り: 角から2マス(約2m)
+    const SITE_DIM_DEFAULT = { std: [12, 12], narrow: [8, 14], wide: [14, 8] };
+    const SITE_FLAG_DEFAULT = { w: 8, h: 8, poleW: 4, poleX: 0, poleH: 5 };
+
+    function patternDimClass(p) {
+      if (p === 'flag') return 'flag';
+      if (p.startsWith('narrow')) return 'narrow';
+      if (p.startsWith('wide')) return 'wide';
+      return 'std';
     }
 
-    function getRoadDrawGrid() {
+    function sitePatternDef(site) {
+      const s = site || appState.site;
+      return SITE_PATTERNS[s.pattern] || SITE_PATTERNS.south;
+    }
+
+    function siteRoadWidthOf(dir, site) {
+      const s = site || appState.site;
+      return (s.roadWidths && s.roadWidths[dir]) || 6;
+    }
+
+    // 主たる道路(先頭)の幅員。従来データとの互換用
+    function getRoadWidthM(site) {
+      return siteRoadWidthOf(sitePatternDef(site).roads[0], site);
+    }
+
+    // 旧データ(roadSide/roadWidthのみ)を新形式(pattern/roadWidths/flag)へ揃える
+    function normalizeSite(s) {
+      if (!s) return s;
+      if (!SITE_PATTERNS[s.pattern]) {
+        s.pattern = ({ south: 'south', north: 'north', east: 'east', west: 'west' })[s.roadSide] || 'south';
+      }
+      const primary = SITE_PATTERNS[s.pattern].roads[0];
+      const had = !!s.roadWidths;
+      s.roadWidths = Object.assign({ S: 6, N: 6, E: 6, W: 6 }, s.roadWidths || {});
+      if (!had) s.roadWidths[primary] = s.roadWidth || 6;
+      s.flag = Object.assign({}, SITE_FLAG_DEFAULT, s.flag || {});
+      s.roadSide = ROAD_DIR_SIDE[primary];
+      s.roadWidth = s.roadWidths[primary];
+      if (s.pattern === 'flag') { s.width = s.flag.w; s.height = s.flag.h + s.flag.poleH; }
+      return s;
+    }
+
+    function getRoadDrawGrid(w) {
       // 画面上の道路表示幅(マス)。実寸比に応じて模式的に描く(6m=2.5マス)
-      return (getRoadWidthM() / 6) * 2.5;
+      return ((w || getRoadWidthM()) / 6) * 2.5;
     }
 
     function calcSetbackDepthGrid(roadW, unitM) {
@@ -976,45 +1212,219 @@
       return (2 - roadW / 2) / unitM;
     }
 
-    function getSetbackDepthGrid() {
-      return calcSetbackDepthGrid(getRoadWidthM(), appState.gridUnitM);
+    // --- 幾何: 敷地外形(多角形)・隣地・後退部分・隅切り ---
+    function cleanPoly(pts) {
+      const out = [];
+      pts.forEach(p => {
+        const q = out[out.length - 1];
+        if (!q || Math.abs(q.x - p.x) > 1e-9 || Math.abs(q.y - p.y) > 1e-9) out.push(p);
+      });
+      if (out.length > 1 && Math.abs(out[0].x - out[out.length - 1].x) < 1e-9 && Math.abs(out[0].y - out[out.length - 1].y) < 1e-9) out.pop();
+      // 一直線上の頂点を除く
+      let changed = true;
+      while (changed && out.length > 3) {
+        changed = false;
+        for (let i = 0; i < out.length; i++) {
+          const a = out[(i + out.length - 1) % out.length], b = out[i], c = out[(i + 1) % out.length];
+          if (Math.abs((b.x - a.x) * (c.y - b.y) - (b.y - a.y) * (c.x - b.x)) < 1e-9) { out.splice(i, 1); changed = true; break; }
+        }
+      }
+      return out;
     }
 
-    function calcSetbackCells(w, h, side, roadW, unitM) {
-      const d = calcSetbackDepthGrid(roadW, unitM);
-      const len = (side === 'south' || side === 'north') ? w : h;
-      return d * len;
+    function polySignedArea(p) {
+      let a = 0;
+      for (let i = 0; i < p.length; i++) { const q = p[(i + 1) % p.length]; a += p[i].x * q.y - q.x * p[i].y; }
+      return a / 2;
+    }
+    function polyArea(p) { return Math.abs(polySignedArea(p)); }
+    function rectPoly(r) { return [{ x: r.x1, y: r.y1 }, { x: r.x2, y: r.y1 }, { x: r.x2, y: r.y2 }, { x: r.x1, y: r.y2 }]; }
+
+    // 凸多角形同士の交差(Sutherland-Hodgman)
+    function clipConvexPoly(subj, clip) {
+      let out = subj;
+      const n = clip.length;
+      const sgn = polySignedArea(clip) >= 0 ? 1 : -1;
+      for (let i = 0; i < n && out.length; i++) {
+        const a = clip[i], b = clip[(i + 1) % n];
+        const input = out; out = [];
+        const side = p => sgn * ((b.x - a.x) * (p.y - a.y) - (b.y - a.y) * (p.x - a.x));
+        const inter = (p, q) => { const d1 = side(p), d2 = side(q); const t = d1 / (d1 - d2); return { x: p.x + (q.x - p.x) * t, y: p.y + (q.y - p.y) * t }; };
+        for (let j = 0; j < input.length; j++) {
+          const p = input[j], q = input[(j + 1) % input.length];
+          const pi = side(p) >= -1e-12, qi = side(q) >= -1e-12;
+          if (pi && qi) out.push(q);
+          else if (pi && !qi) out.push(inter(p, q));
+          else if (!pi && qi) { out.push(inter(p, q)); out.push(q); }
+        }
+      }
+      return out;
+    }
+
+    let _siteGeomCache = { key: null, geom: null };
+    function getSiteGeom(site, unitM) {
+      const s = site || appState.site;
+      const u = unitM || appState.gridUnitM;
+      const key = [s.pattern, s.offsetX, s.offsetY, s.width, s.height, JSON.stringify(s.roadWidths), JSON.stringify(s.flag), u].join('|');
+      if (_siteGeomCache.key === key) return _siteGeomCache.geom;
+      const geom = buildSiteGeom(s, u);
+      _siteGeomCache = { key, geom };
+      return geom;
+    }
+
+    function buildSiteGeom(s, u) {
+      const def = SITE_PATTERNS[s.pattern] || SITE_PATTERNS.south;
+      const ox = s.offsetX || 0, oy = s.offsetY || 0, W = s.width, H = s.height;
+      const isFlag = s.pattern === 'flag';
+      const f = Object.assign({}, SITE_FLAG_DEFAULT, s.flag || {});
+      const rws = Object.assign({ S: 6, N: 6, E: 6, W: 6 }, s.roadWidths || {});
+      let baseRel;
+      const neighbors = [];
+      if (isFlag) {
+        const fh = f.h, px1 = f.poleX, px2 = f.poleX + f.poleW;
+        baseRel = [[0, 0], [W, 0], [W, fh], [px2, fh], [px2, H], [px1, H], [px1, fh], [0, fh]];
+        if (px1 > 0) neighbors.push({ x1: ox, y1: oy + fh, x2: ox + px1, y2: oy + H });
+        if (px2 < W) neighbors.push({ x1: ox + px2, y1: oy + fh, x2: ox + W, y2: oy + H });
+      } else {
+        baseRel = [[0, 0], [W, 0], [W, H], [0, H]];
+      }
+      const base = cleanPoly(baseRel.map(p => ({ x: ox + p[0], y: oy + p[1] })));
+
+      // 隅切り: 角地で、接する2道路のどちらかが4mのとき
+      let cut = null;
+      let poly = base;
+      if (def.corner) {
+        const widths = def.roads.map(d => rws[d]);
+        if (widths.some(v => v === 4)) {
+          const L = Math.max(0.5, Math.min(CORNER_CUT_CELLS, W - 1, H - 1));
+          const sx = def.corner.endsWith('e') ? 1 : -1;
+          const sy = def.corner.startsWith('s') ? 1 : -1;
+          const cx = sx > 0 ? ox + W : ox, cy = sy > 0 ? oy + H : oy;
+          const a = { x: cx - sx * L, y: cy }, b = { x: cx, y: cy - sy * L };
+          const seq = (sx * sy > 0) ? [b, a] : [a, b];
+          const np = [];
+          base.forEach(p => {
+            if (Math.abs(p.x - cx) < 1e-9 && Math.abs(p.y - cy) < 1e-9) seq.forEach(q => np.push(q)); else np.push(p);
+          });
+          poly = np;
+          cut = { cx, cy, sx, sy, L, a, b, tri: [a, b, { x: cx, y: cy }] };
+        }
+      }
+
+      // 後退(セットバック)部分: 幅員4m未満の道路沿い
+      const strips = [];
+      def.roads.forEach(d => {
+        const dep = calcSetbackDepthGrid(rws[d], u);
+        if (dep <= 0) return;
+        let r;
+        if (d === 'S') {
+          const xa = isFlag ? ox + f.poleX : ox, xb = isFlag ? ox + f.poleX + f.poleW : ox + W;
+          r = { x1: xa, y1: oy + H - dep, x2: xb, y2: oy + H };
+        } else if (d === 'N') r = { x1: ox, y1: oy, x2: ox + W, y2: oy + dep };
+        else if (d === 'E') r = { x1: ox + W - dep, y1: oy, x2: ox + W, y2: oy + H };
+        else r = { x1: ox, y1: oy, x2: ox + dep, y2: oy + H };
+        strips.push(Object.assign({ dir: d, depth: dep }, r));
+      });
+      return { def, base, poly, neighbors, strips, cut };
+    }
+
+    // 後退部分・隅切り・旗竿地の隣地を除いた有効敷地面積(マス)
+    function computeEffectiveSiteCells(site, unitM) {
+      const g = getSiteGeom(site, unitM);
+      const shapes = g.strips.map(rectPoly);
+      if (g.cut) shapes.push(g.cut.tri);
+      let union = 0;
+      const n = shapes.length;
+      for (let mask = 1; mask < (1 << n); mask++) {
+        let poly = null, bits = 0, ok = true;
+        for (let i = 0; i < n && ok; i++) {
+          if (!(mask & (1 << i))) continue;
+          bits++;
+          poly = poly ? clipConvexPoly(poly, shapes[i]) : shapes[i];
+          if (!poly || poly.length < 3) ok = false;
+        }
+        if (ok) union += (bits % 2 ? 1 : -1) * polyArea(poly);
+      }
+      return Math.max(0, polyArea(g.base) - union);
     }
 
     function getEffectiveSiteCells() {
-      const st = appState.site;
-      const cells = st.width * st.height - calcSetbackCells(st.width, st.height, st.roadSide, getRoadWidthM(), appState.gridUnitM);
-      return Math.max(0, cells);
+      return computeEffectiveSiteCells(appState.site, appState.gridUnitM);
     }
 
-    function getSetbackStripRect() {
-      const d = getSetbackDepthGrid();
-      if (d <= 0) return null;
-      const st = appState.site;
-      const ox = st.offsetX, oy = st.offsetY, w = st.width, h = st.height;
-      if (st.roadSide === 'south') return { x1: ox, y1: oy + h - d, x2: ox + w, y2: oy + h };
-      if (st.roadSide === 'north') return { x1: ox, y1: oy, x2: ox + w, y2: oy + d };
-      if (st.roadSide === 'east') return { x1: ox + w - d, y1: oy, x2: ox + w, y2: oy + h };
-      return { x1: ox, y1: oy, x2: ox + d, y2: oy + h };
-    }
-
-    // 矩形(マス座標)が後退部分へ食い込む深さ(マス)を返す。後退なし・敷地の範囲外なら0。
-    function rectSetbackPenetration(x1, y1, x2, y2) {
-      const d = getSetbackDepthGrid();
-      if (d <= 0) return 0;
-      const st = appState.site;
-      const ox = st.offsetX, oy = st.offsetY, w = st.width, h = st.height;
-      if (st.roadSide === 'south' || st.roadSide === 'north') {
-        if (x2 <= ox || x1 >= ox + w) return 0;
-        return st.roadSide === 'south' ? Math.max(0, y2 - (oy + h - d)) : Math.max(0, (oy + d) - y1);
+    // 道路の帯(px)。接道ごとの帯と、角地の道路交差部
+    function getRoadBands(site) {
+      const s = site || appState.site;
+      const def = sitePatternDef(s);
+      const G = GRID_SIZE;
+      const f = Object.assign({}, SITE_FLAG_DEFAULT, s.flag || {});
+      const x = s.offsetX * G, y = s.offsetY * G, w = s.width * G, h = s.height * G;
+      const out = [], by = {};
+      def.roads.forEach(d => {
+        const t = getRoadDrawGrid(siteRoadWidthOf(d, s)) * G;
+        let b;
+        if (d === 'S') {
+          const bx = s.pattern === 'flag' ? (s.offsetX + f.poleX) * G : x;
+          const bw = s.pattern === 'flag' ? f.poleW * G : w;
+          b = { dir: d, x: bx, y: y + h, w: bw, h: t };
+        } else if (d === 'N') b = { dir: d, x, y: y - t, w, h: t };
+        else if (d === 'E') b = { dir: d, x: x + w, y, w: t, h };
+        else b = { dir: d, x: x - t, y, w: t, h };
+        out.push(b); by[d] = b;
+      });
+      if (def.corner) {
+        const vd = def.roads.find(d => d === 'E' || d === 'W');
+        const hd = def.roads.find(d => d === 'S' || d === 'N');
+        out.push({
+          dir: 'corner', patch: true,
+          x: vd === 'E' ? x + w : x - by[vd].w,
+          y: hd === 'S' ? y + h : y - by[hd].h,
+          w: by[vd].w, h: by[hd].h
+        });
       }
-      if (y2 <= oy || y1 >= oy + h) return 0;
-      return st.roadSide === 'east' ? Math.max(0, x2 - (ox + w - d)) : Math.max(0, (ox + d) - x1);
+      return out;
+    }
+
+    // 道路側の余白(マス)。敷地を動かしても道路が画面外に出ないようにする
+    function siteRoadMargins(s) {
+      const def = sitePatternDef(s);
+      const m = { N: 0, S: 0, E: 0, W: 0 };
+      def.roads.forEach(d => { m[d] = Math.ceil(getRoadDrawGrid(siteRoadWidthOf(d, s)) + 0.5); });
+      return m;
+    }
+
+    // 矩形(マス座標)が配置不可の範囲(後退部分・隣地・隅切り)へ食い込む深さ(マス)を返す。なければ0。
+    function rectSetbackPenetration(x1, y1, x2, y2) {
+      const g = getSiteGeom();
+      let best = 0;
+      for (const st of g.strips) {
+        let p;
+        if (st.dir === 'S' || st.dir === 'N') {
+          if (x2 <= st.x1 || x1 >= st.x2) continue;
+          p = st.dir === 'S' ? y2 - st.y1 : st.y2 - y1;
+        } else {
+          if (y2 <= st.y1 || y1 >= st.y2) continue;
+          p = st.dir === 'E' ? x2 - st.x1 : st.x2 - x1;
+        }
+        if (p > best) best = p;
+      }
+      for (const n of g.neighbors) {
+        const ovx = Math.min(x2, n.x2) - Math.max(x1, n.x1);
+        const ovy = Math.min(y2, n.y2) - Math.max(y1, n.y1);
+        if (ovx > 0 && ovy > 0) best = Math.max(best, Math.min(ovx, ovy));
+      }
+      const c = g.cut;
+      if (c) {
+        const reachX = c.sx > 0 ? x1 < c.cx : x2 > c.cx;
+        const reachY = c.sy > 0 ? y1 < c.cy : y2 > c.cy;
+        if (reachX && reachY) {
+          const px = c.sx > 0 ? Math.min(x2, c.cx) : Math.max(x1, c.cx);
+          const py = c.sy > 0 ? Math.min(y2, c.cy) : Math.max(y1, c.cy);
+          const dsum = Math.abs(c.cx - px) + Math.abs(c.cy - py);
+          if (dsum < c.L) best = Math.max(best, (c.L - dsum) / Math.SQRT2);
+        }
+      }
+      return best;
     }
 
     function roomSetbackPenetration(r) {
@@ -1053,7 +1463,7 @@
       const now = Date.now();
       if (now - lastSetbackToastAt < 1500) return;
       lastSetbackToastAt = now;
-      showToast("道路の後退部分(セットバック)には配置できません", "🚧");
+      showToast("後退部分(セットバック)・隅切り・隣地には配置できません", "🚧");
     }
 
     function snapshotRoomGeom(r) {
@@ -1077,24 +1487,23 @@
       const s = appState.site;
       const x = s.offsetX * GRID_SIZE, y = s.offsetY * GRID_SIZE;
       const w = s.width * GRID_SIZE, h = s.height * GRID_SIZE;
-      const rw = getRoadDrawGrid() * GRID_SIZE;
-
-      let road = null;
-      if (s.roadSide === 'south') road = { x, y: y + h, w, h: rw };
-      else if (s.roadSide === 'north') road = { x, y: y - rw, w, h: rw };
-      else if (s.roadSide === 'east') road = { x: x + w, y, w: rw, h };
-      else if (s.roadSide === 'west') road = { x: x - rw, y, w: rw, h };
+      const bands = getRoadBands(s);
+      const bt = d => { const b = bands.find(q => q.dir === d); return b ? ((d === 'S' || d === 'N') ? b.h : b.w) : 0; };
 
       const candidates = [
-        { x: x + w + 34, y: y + 24 },       // 敷地の右上の外側
+        { x: x + w + 34 + ((s.pattern !== 'flag' && sitePatternDef(s).roads.includes('W') && !sitePatternDef(s).roads.includes('E')) ? 22 : 0), y: y + 24 },       // 敷地の右上の外側(寸法線を避ける)
         { x: x + w - 18, y: y - 34 },       // 敷地の上側(右寄り)
         { x: x - 34, y: y + 24 },           // 敷地の左上の外側
-        { x: x + w - 18, y: y + h + 34 }    // 敷地の下側(右寄り)
+        { x: x + w - 18, y: y + h + 34 },   // 敷地の下側(右寄り)
+        { x: x + w + bt('E') + 34, y: y + 24 },      // 東側道路の外
+        { x: x - bt('W') - 34, y: y + 24 },          // 西側道路の外
+        { x: x + w - 18, y: y - bt('N') - 34 },      // 北側道路の外
+        { x: x + w - 18, y: y + h + bt('S') + 34 }   // 南側道路の外
       ];
       const fits = c => c.x >= 30 && c.x <= 1170 && c.y >= 24 && c.y <= 690;
-      const overlapsRoad = c => road &&
+      const overlapsRoad = c => bands.some(road =>
         c.x + 26 > road.x && c.x - 26 < road.x + road.w &&
-        c.y + 34 > road.y && c.y - 20 < road.y + road.h;
+        c.y + 34 > road.y && c.y - 20 < road.y + road.h);
 
       let pos = candidates.find(c => fits(c) && !overlapsRoad(c))
         || candidates.find(fits)
@@ -1102,173 +1511,193 @@
       cg.setAttribute("transform", `translate(${pos.x}, ${pos.y})`);
     }
 
+    let siteDimRects = []; // 敷地の寸法ラベルの位置(他の表示が重ならないよう避けるため)
     function renderSite() {
       if (!siteGroup) return;
       siteGroup.innerHTML = "";
 
       const s = appState.site;
-      const x = s.offsetX * GRID_SIZE;
-      const y = s.offsetY * GRID_SIZE;
-      const w = s.width * GRID_SIZE;
-      const h = s.height * GRID_SIZE;
+      const g = getSiteGeom(s);
+      const def = g.def;
+      const G = GRID_SIZE;
+      const NS = "http://www.w3.org/2000/svg";
+      const x = s.offsetX * G;
+      const y = s.offsetY * G;
+      const w = s.width * G;
+      const h = s.height * G;
+      const isFlag = s.pattern === 'flag';
+      const f = Object.assign({}, SITE_FLAG_DEFAULT, s.flag || {});
       placeCompassNearSite();
 
-      // 1. Site Fill & Boundary Line
-      const siteRect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-      siteRect.setAttribute("x", x);
-      siteRect.setAttribute("y", y);
-      siteRect.setAttribute("width", w);
-      siteRect.setAttribute("height", h);
-      siteRect.setAttribute("fill", "rgba(16, 185, 129, 0.08)");
-      siteRect.setAttribute("stroke", "none");
-      siteRect.setAttribute("pointer-events", "none");
-      siteGroup.appendChild(siteRect);
+      const mk = (tag, attrs) => {
+        const el = document.createElementNS(NS, tag);
+        Object.keys(attrs).forEach(k => el.setAttribute(k, attrs[k]));
+        return el;
+      };
+      const fitFont = (text, len, maxFs) => Math.max(7, Math.min(maxFs, len / (textUnits(text) + 1)));
 
-      // 敷地境界線: 一点鎖線。各辺の両端が必ず長い線分になるよう間隔を調整し、角で線同士が直角に合う
+      // 0. 旗竿地の隣地部分
+      g.neighbors.forEach(n => {
+        siteGroup.appendChild(mk("rect", {
+          x: n.x1 * G, y: n.y1 * G, width: (n.x2 - n.x1) * G, height: (n.y2 - n.y1) * G,
+          fill: "rgba(100,116,139,0.22)", stroke: "#475569", "stroke-width": 1, "stroke-dasharray": "3 3", "pointer-events": "none"
+        }));
+        const t = mk("text", {
+          x: (n.x1 + n.x2) / 2 * G, y: (n.y1 + n.y2) / 2 * G, fill: "#94a3b8", "font-size": 11, "font-weight": "bold",
+          "text-anchor": "middle", "dominant-baseline": "central", "pointer-events": "none"
+        });
+        t.textContent = "隣地";
+        siteGroup.appendChild(t);
+      });
+
+      // 1. 敷地の塗り(外形)
+      siteGroup.appendChild(mk("polygon", {
+        points: g.poly.map(p => `${p.x * G},${p.y * G}`).join(" "),
+        fill: "rgba(16, 185, 129, 0.08)", stroke: "none", "pointer-events": "none"
+      }));
+
+      // 敷地境界線: 一点鎖線。各辺の両端が必ず長い線分になるよう間隔を調整し、角で線同士が合う
       const chainLine = (x1, y1, x2, y2) => {
         const L = Math.hypot(x2 - x1, y2 - y1);
+        if (L < 1) return;
         const LONG = 14, GAP = 3, DOT = 2, P = LONG + GAP + DOT + GAP;
         const n = Math.max(1, Math.round((L - LONG) / P));
         const k = L / (n * P + LONG);
-        const ln = document.createElementNS("http://www.w3.org/2000/svg", "line");
-        ln.setAttribute("x1", x1); ln.setAttribute("y1", y1); ln.setAttribute("x2", x2); ln.setAttribute("y2", y2);
-        ln.setAttribute("stroke", "#10b981");
-        ln.setAttribute("stroke-width", "1");
-        ln.setAttribute("stroke-linecap", "butt");
-        ln.setAttribute("stroke-dasharray", [LONG, GAP, DOT, GAP].map(v => (v * k).toFixed(2)).join(" "));
-        ln.setAttribute("pointer-events", "none");
-        siteGroup.appendChild(ln);
+        siteGroup.appendChild(mk("line", {
+          x1, y1, x2, y2, stroke: "#10b981", "stroke-width": 1, "stroke-linecap": "butt",
+          "stroke-dasharray": [LONG, GAP, DOT, GAP].map(v => (v * k).toFixed(2)).join(" "), "pointer-events": "none"
+        }));
       };
       const hw = 0.5; // 線幅の半分だけ延ばして角をきっちり合わせる
-      chainLine(x - hw, y, x + w + hw, y);
-      chainLine(x + w, y - hw, x + w, y + h + hw);
-      chainLine(x + w + hw, y + h, x - hw, y + h);
-      chainLine(x, y + h + hw, x, y - hw);
+      for (let i = 0; i < g.poly.length; i++) {
+        const a = g.poly[i], b = g.poly[(i + 1) % g.poly.length];
+        const ax = a.x * G, ay = a.y * G, bx = b.x * G, by2 = b.y * G;
+        const len = Math.hypot(bx - ax, by2 - ay) || 1;
+        const ux = (bx - ax) / len, uy = (by2 - ay) / len;
+        chainLine(ax - ux * hw, ay - uy * hw, bx + ux * hw, by2 + uy * hw);
+      }
 
-      // 敷地の寸法表示: 2方向(横・縦)のマス数と実寸を、敷地の外側に寸法線として表示
-      const siteMetersW = gridLenToM(s.width).toFixed(2);
-      const siteMetersH = gridLenToM(s.height).toFixed(2);
-      const NS = "http://www.w3.org/2000/svg";
-      const dimLine = (x1, y1, x2, y2) => {
-        const l = document.createElementNS(NS, "line");
-        l.setAttribute("x1", x1); l.setAttribute("y1", y1); l.setAttribute("x2", x2); l.setAttribute("y2", y2);
-        l.setAttribute("stroke", "#cbd5e1"); l.setAttribute("stroke-width", "1");
-        l.setAttribute("stroke-dasharray", "4 3"); l.setAttribute("pointer-events", "none");
-        siteGroup.appendChild(l);
-      };
-      const dimLabel = (cx, cy, text, rotate) => {
-        const g = document.createElementNS(NS, "g");
-        g.setAttribute("pointer-events", "none");
-        if (rotate) g.setAttribute("transform", `rotate(-90 ${cx} ${cy})`);
-        const tw = text.length * 6.6 + 14;
-        const r = document.createElementNS(NS, "rect");
-        r.setAttribute("x", cx - tw / 2); r.setAttribute("y", cy - 9);
-        r.setAttribute("width", tw); r.setAttribute("height", 18); r.setAttribute("rx", 4);
-        r.setAttribute("fill", "#0f172a"); r.setAttribute("stroke", "#64748b"); r.setAttribute("stroke-width", "1");
-        g.appendChild(r);
-        const t = document.createElementNS(NS, "text");
-        t.setAttribute("x", cx); t.setAttribute("y", cy);
-        t.setAttribute("fill", "#f1f5f9"); t.setAttribute("font-size", "11"); t.setAttribute("font-weight", "bold");
-        t.setAttribute("text-anchor", "middle"); t.setAttribute("dominant-baseline", "central");
+      // 2. 道路(接道ごとの帯・角地の交差部・隅切り部分)
+      const bands = getRoadBands(s);
+      const bandThick = d => { const b = bands.find(q => q.dir === d); return b ? ((d === 'S' || d === 'N') ? b.h : b.w) : 0; };
+      const hasRoad = d => def.roads.includes(d);
+      const roadGroup = mk("g", {});
+      const ROAD_FILL = "rgba(71, 85, 105, 0.4)";
+      bands.forEach(b => {
+        if (b.patch) {
+          roadGroup.appendChild(mk("rect", { x: b.x, y: b.y, width: b.w, height: b.h, fill: ROAD_FILL, stroke: "none" }));
+          return;
+        }
+        roadGroup.appendChild(mk("rect", { x: b.x, y: b.y, width: b.w, height: b.h, fill: ROAD_FILL, stroke: "#64748b", "stroke-width": 1 }));
+      });
+      if (g.cut) {
+        roadGroup.appendChild(mk("polygon", {
+          points: g.cut.tri.map(p => `${p.x * G},${p.y * G}`).join(" "), fill: ROAD_FILL, stroke: "none"
+        }));
+      }
+      bands.forEach(b => {
+        if (b.patch) return;
+        const vertical = (b.dir === 'E' || b.dir === 'W');
+        const wm = siteRoadWidthOf(b.dir, s);
+        const text = def.roads.length === 1 ? `前面道路 (幅員${wm.toFixed(1)}m)` : `${ROAD_DIR_NAME[b.dir]}側道路 (幅員${wm.toFixed(1)}m)`;
+        const cx = b.x + b.w / 2, cy = b.y + b.h / 2;
+        const t = mk("text", {
+          x: cx, y: vertical ? cy : cy + 4, fill: "#94a3b8", "font-size": fitFont(text, vertical ? b.h : b.w, 11).toFixed(1),
+          "font-weight": "bold", "text-anchor": "middle"
+        });
+        if (vertical) { t.setAttribute("y", cy); t.setAttribute("transform", `rotate(90 ${cx} ${cy})`); }
         t.textContent = text;
-        g.appendChild(t);
-        siteGroup.appendChild(g);
-      };
-      // 道路側とは反対側(北・西が基本)に寸法線を置く
-      const dimY = (s.roadSide === 'north') ? y + h + 20 : y - 20;
-      const dimX = (s.roadSide === 'west') ? x + w + 20 : x - 20;
-      dimLine(x, dimY, x + w, dimY);
-      dimLine(x, dimY - 5, x, dimY + 5);
-      dimLine(x + w, dimY - 5, x + w, dimY + 5);
-      dimLabel(x + w / 2, dimY, `${siteMetersW}m (${s.width}マス)`, false);
-      dimLine(dimX, y, dimX, y + h);
-      dimLine(dimX - 5, y, dimX + 5, y);
-      dimLine(dimX - 5, y + h, dimX + 5, y + h);
-      dimLabel(dimX, y + h / 2, `${siteMetersH}m (${s.height}マス)`, true);
-
-      // 2. Road Graphic
-      const roadGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
-      let rx = x, ry = y, rw = w, rh = h;
-      let roadWidth = getRoadDrawGrid() * GRID_SIZE; // 幅員に応じた模式的な道路幅
-      let roadLabelX = x + w / 2, roadLabelY = y + h / 2;
-
-      if (s.roadSide === 'south') {
-        ry = y + h;
-        rh = roadWidth;
-        roadLabelY = ry + roadWidth / 2 + 4;
-      } else if (s.roadSide === 'north') {
-        ry = y - roadWidth;
-        rh = roadWidth;
-        roadLabelY = ry + roadWidth / 2 + 4;
-      } else if (s.roadSide === 'east') {
-        rx = x + w;
-        rw = roadWidth;
-        roadLabelX = rx + roadWidth / 2;
-        roadLabelY = y + h / 2;
-      } else if (s.roadSide === 'west') {
-        rx = x - roadWidth;
-        rw = roadWidth;
-        roadLabelX = rx + roadWidth / 2;
-        roadLabelY = y + h / 2;
-      }
-
-      const roadRect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-      roadRect.setAttribute("x", rx);
-      roadRect.setAttribute("y", ry);
-      roadRect.setAttribute("width", rw);
-      roadRect.setAttribute("height", rh);
-      roadRect.setAttribute("fill", "rgba(71, 85, 105, 0.4)");
-      roadRect.setAttribute("stroke", "#64748b");
-      roadRect.setAttribute("stroke-width", "1");
-      roadGroup.appendChild(roadRect);
-
-      const roadTxt = document.createElementNS("http://www.w3.org/2000/svg", "text");
-      roadTxt.setAttribute("x", roadLabelX);
-      roadTxt.setAttribute("y", roadLabelY);
-      roadTxt.setAttribute("fill", "#94a3b8");
-      roadTxt.setAttribute("font-size", "11");
-      roadTxt.setAttribute("font-weight", "bold");
-      roadTxt.setAttribute("text-anchor", "middle");
-      if (s.roadSide === 'east' || s.roadSide === 'west') {
-        roadTxt.setAttribute("transform", `rotate(90 ${roadLabelX} ${roadLabelY})`);
-      }
-      roadTxt.textContent = `前面道路 (幅員${getRoadWidthM().toFixed(1)}m)`;
-      roadGroup.appendChild(roadTxt);
-
+        roadGroup.appendChild(t);
+      });
       siteGroup.appendChild(roadGroup);
 
-      // 3. セットバック(後退)部分: 幅員4m未満の場合に表示。配置不可・敷地面積から除外
-      const sb = getSetbackStripRect();
-      if (sb) {
-        const sbRect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-        sbRect.setAttribute("x", sb.x1 * GRID_SIZE);
-        sbRect.setAttribute("y", sb.y1 * GRID_SIZE);
-        sbRect.setAttribute("width", (sb.x2 - sb.x1) * GRID_SIZE);
-        sbRect.setAttribute("height", (sb.y2 - sb.y1) * GRID_SIZE);
-        sbRect.setAttribute("fill", "rgba(244, 63, 94, 0.22)");
-        sbRect.setAttribute("stroke", "#f43f5e");
-        sbRect.setAttribute("stroke-width", "1");
-        sbRect.setAttribute("stroke-dasharray", "4 3");
-        sbRect.setAttribute("pointer-events", "none");
-        siteGroup.appendChild(sbRect);
-
-        const sbTxt = document.createElementNS("http://www.w3.org/2000/svg", "text");
-        const horizontalStrip = (s.roadSide === 'south' || s.roadSide === 'north');
-        const cxp = ((sb.x1 + sb.x2) / 2) * GRID_SIZE;
-        const cyp = ((sb.y1 + sb.y2) / 2) * GRID_SIZE;
-        sbTxt.setAttribute("x", cxp);
-        sbTxt.setAttribute("y", cyp);
-        sbTxt.setAttribute("fill", "#fb7185");
-        sbTxt.setAttribute("font-size", "8");
-        sbTxt.setAttribute("font-weight", "bold");
-        sbTxt.setAttribute("text-anchor", "middle");
-        sbTxt.setAttribute("dominant-baseline", "central");
-        sbTxt.setAttribute("pointer-events", "none");
-        if (!horizontalStrip) sbTxt.setAttribute("transform", `rotate(90 ${cxp} ${cyp})`);
-        sbTxt.textContent = `後退部分 (道路中心から2m・配置不可)`;
-        siteGroup.appendChild(sbTxt);
+      // 隅切りの表示
+      if (g.cut) {
+        const c = g.cut;
+        const mx = (c.a.x + c.b.x) / 2 * G, my = (c.a.y + c.b.y) / 2 * G;
+        const t = mk("text", {
+          x: mx - c.sx * 4, y: my - c.sy * 4, fill: "#fbbf24", "font-size": 9, "font-weight": "bold",
+          "text-anchor": c.sx > 0 ? "end" : "start", "dominant-baseline": c.sy > 0 ? "auto" : "hanging", "pointer-events": "none"
+        });
+        t.textContent = "隅切り(約2m)";
+        // 敷地の内側へ寄せて表示
+        t.setAttribute("x", (c.a.x + c.b.x) / 2 * G - c.sx * 6);
+        t.setAttribute("y", (c.a.y + c.b.y) / 2 * G - c.sy * 6);
+        siteGroup.appendChild(t);
+        siteGroup.appendChild(mk("line", {
+          x1: c.a.x * G, y1: c.a.y * G, x2: c.b.x * G, y2: c.b.y * G,
+          stroke: "#fbbf24", "stroke-width": 1.5, "stroke-dasharray": "4 3", "pointer-events": "none"
+        }));
       }
+
+      // 3. 敷地の寸法表示: 敷地の外側に寸法線として表示
+      const dimLine = (x1, y1, x2, y2) => {
+        siteGroup.appendChild(mk("line", {
+          x1, y1, x2, y2, stroke: "#cbd5e1", "stroke-width": 1, "stroke-dasharray": "4 3", "pointer-events": "none"
+        }));
+      };
+      siteDimRects = [];
+      const dimLabel = (cx, cy, text, rotate) => {
+        const gg = mk("g", { "pointer-events": "none" });
+        if (rotate) gg.setAttribute("transform", `rotate(-90 ${cx} ${cy})`);
+        const tw = textUnits(text) * 11 + 14;
+        siteDimRects.push(rotate ? { x: cx - 9, y: cy - tw / 2, w: 18, h: tw } : { x: cx - tw / 2, y: cy - 9, w: tw, h: 18 });
+        gg.appendChild(mk("rect", { x: cx - tw / 2, y: cy - 9, width: tw, height: 18, rx: 4, fill: "#0f172a", stroke: "#64748b", "stroke-width": 1 }));
+        const t = mk("text", {
+          x: cx, y: cy, fill: "#f1f5f9", "font-size": 11, "font-weight": "bold", "text-anchor": "middle", "dominant-baseline": "central"
+        });
+        t.textContent = text;
+        gg.appendChild(t);
+        siteGroup.appendChild(gg);
+      };
+      const dimH = (xa, xb, yy, text) => {
+        dimLine(xa, yy, xb, yy); dimLine(xa, yy - 5, xa, yy + 5); dimLine(xb, yy - 5, xb, yy + 5);
+        dimLabel((xa + xb) / 2, yy, text, false);
+      };
+      const dimV = (ya, yb, xx, text) => {
+        dimLine(xx, ya, xx, yb); dimLine(xx - 5, ya, xx + 5, ya); dimLine(xx - 5, yb, xx + 5, yb);
+        dimLabel(xx, (ya + yb) / 2, text, true);
+      };
+      const mTxt = n => `${gridLenToM(n).toFixed(2)}m (${n}マス)`;
+      if (!isFlag) {
+        const topSide = !(hasRoad('N') && !hasRoad('S'));
+        const leftSide = !(hasRoad('W') && !hasRoad('E'));
+        const dimY = topSide ? y - 20 - bandThick('N') : y + h + 20;
+        const dimX = leftSide ? x - 20 - bandThick('W') : x + w + 20;
+        dimH(x, x + w, dimY, mTxt(s.width));
+        dimV(y, y + h, dimX, mTxt(s.height));
+      } else {
+        const fh = f.h * G, px1 = (s.offsetX + f.poleX) * G, px2 = (s.offsetX + f.poleX + f.poleW) * G;
+        dimH(x, x + w, y - 20, `旗幅 ${mTxt(f.w)}`);
+        dimV(y, y + fh, x - 20, `旗奥行 ${mTxt(f.h)}`);
+        dimH(px1, px2, y + h + bandThick('S') + 20, `竿幅 ${mTxt(f.poleW)}`);
+        dimV(y + fh, y + h, px2 + 20, `竿長 ${mTxt(f.poleH)}`);
+      }
+
+      // 4. セットバック(後退)部分: 幅員4m未満の道路沿い。配置不可・敷地面積から除外
+      g.strips.forEach(st => {
+        const sw = (st.x2 - st.x1) * G, sh = (st.y2 - st.y1) * G;
+        siteGroup.appendChild(mk("rect", {
+          x: st.x1 * G, y: st.y1 * G, width: sw, height: sh,
+          fill: "rgba(244, 63, 94, 0.22)", stroke: "#f43f5e", "stroke-width": 1, "stroke-dasharray": "4 3", "pointer-events": "none"
+        }));
+        const horizontal = (st.dir === 'S' || st.dir === 'N');
+        const cxp = (st.x1 + st.x2) / 2 * G, cyp = (st.y1 + st.y2) / 2 * G;
+        const full = "後退部分 (道路中心から2m・配置不可)";
+        const text = (horizontal ? sw : sh) >= textUnits(full) * 8 + 8 ? full : "後退部分";
+        const t = mk("text", {
+          x: cxp, y: cyp, fill: "#fb7185", "font-size": fitFont(text, horizontal ? sw : sh, 8).toFixed(1), "font-weight": "bold",
+          "text-anchor": "middle", "dominant-baseline": "central", "pointer-events": "none"
+        });
+        if (!horizontal) t.setAttribute("transform", `rotate(90 ${cxp} ${cyp})`);
+        t.textContent = text;
+        siteGroup.appendChild(t);
+      });
     }
+
+    const WALL_THICKNESS_MM = 150;   // 壁の厚さ
+    const WALL_COLOR = "#f8fafc";    // 壁の色(全パーツ共通)
+    const WALL_EDGE_COLOR = "#0f172a"; // 壁の縁取り
 
     // --- 部屋ラベル配置(他パーツと重ならない位置・大きさ) ---
     function roomHalfCells(r) {
@@ -1525,6 +1954,7 @@
     }
 
     function render() {
+      updateModuleBadge();
       if (!underlayGroup || !siteGroup || !roomsGroup || !controlsGroup) return;
 
       // 安全策: どの作成経路であっても、階段パーツは必ず上階に同位置・同サイズで
@@ -1534,6 +1964,9 @@
       underlayGroup.innerHTML = "";
       siteGroup.innerHTML = "";
       roomsGroup.innerHTML = "";
+      if (roomLabelsGroup) roomLabelsGroup.innerHTML = "";
+      const wallsGroupEl = document.getElementById("wallsGroup");
+      if (wallsGroupEl) wallsGroupEl.innerHTML = "";
       controlsGroup.innerHTML = "";
 
       renderSite();
@@ -1627,7 +2060,7 @@
         const baseTitleSize = appState.textScaleMode === "large" ? 15 : 12;
         const baseSubSize = appState.textScaleMode === "large" ? 11 : 9.5;
         const nameStr = def.name.split(" ")[0];
-        const sizeStr = `${formatJyoDisplay(jyo)}畳 (${(jyo * 1.65).toFixed(1)}㎡)`;
+        const sizeStr = `${formatJyoDisplay(jyo)}畳 (${jyoToSqm(jyo).toFixed(1)}㎡)`;
         const laterRooms = currentRooms.slice(currentRooms.indexOf(room) + 1);
         const lay = computeRoomLabelLayout(room, laterRooms, nameStr, sizeStr, appState.showSizeLabel, baseTitleSize, baseSubSize);
         const centerX = lay.cx, centerY = lay.cy;
@@ -1666,7 +2099,7 @@
           textGroup.appendChild(sizeText);
         }
 
-        g.appendChild(textGroup);
+        (roomLabelsGroup || g).appendChild(textGroup);
         roomsGroup.appendChild(g);
 
         // 3. Selection Controls for Active Room
@@ -1686,6 +2119,9 @@
           outline.setAttribute("stroke-dasharray", "6 3");
           outline.setAttribute("pointer-events", "none");
           ctrlG.appendChild(outline);
+
+          // 回転ポイント: 各辺の中央(角のポイントより奥に置き、重なる場合は角を優先)
+          addRotateHandles(ctrlG, room.x * GRID_SIZE - 2, room.y * GRID_SIZE - 2, room.w * GRID_SIZE + 4, room.h * GRID_SIZE + 4, "rotate", "data-room-id", room.id, 0);
 
           // 角のポイント: ドラッグで形を変形(0.5マス単位・辺は常に水平/垂直のまま)
           roomOutlineLoops(room).forEach((loop, li) => {
@@ -1726,6 +2162,31 @@
         }
       });
 
+      // 壁: 外周線を全パーツ分まとめて描く。縁取りを先に全部描き、その上に白を重ねるので、
+      // 隣接する部屋どうしの境界の壁は1本に融合する
+      if (wallsGroupEl) {
+        const wallPx = mmToPx(WALL_THICKNESS_MM);
+        const paths = [];
+        currentRooms.forEach(room => {
+          if (isExteriorType(room.type)) return;
+          roomOutlineLoops(room).forEach(loop => {
+            paths.push(loop.map((v, i) => `${i ? "L" : "M"}${v.x * GRID_SIZE} ${v.y * GRID_SIZE}`).join(" ") + " Z");
+          });
+        });
+        [[WALL_EDGE_COLOR, wallPx + 1.6], [WALL_COLOR, wallPx]].forEach(([col, w]) => {
+          paths.forEach(d => {
+            const wp = document.createElementNS("http://www.w3.org/2000/svg", "path");
+            wp.setAttribute("d", d);
+            wp.setAttribute("fill", "none");
+            wp.setAttribute("stroke", col);
+            wp.setAttribute("stroke-width", w);
+            wp.setAttribute("stroke-linejoin", "miter");
+            wp.setAttribute("pointer-events", "none");
+            wallsGroupEl.appendChild(wp);
+          });
+        });
+      }
+
       renderFittings();
       renderEquipment();
       renderFlowLines();
@@ -1734,6 +2195,144 @@
     }
 
     // --- FITTINGS (建具) RENDERING ---
+
+    // --- 回転ポイント: パーツの各辺の中央に表示。カーソルを近づけると「↻」が現れ、クリックで90°回転(パーツ中心まわり) ---
+    function addRotateHandles(parent, bx, by, bw, bh, action, idAttr, id, out) {
+      const o = out || 0;
+      const pts = [
+        [bx + bw / 2, by - o], [bx + bw / 2, by + bh + o],
+        [bx - o, by + bh / 2], [bx + bw + o, by + bh / 2]
+      ];
+      pts.forEach(([cx, cy]) => {
+        const g = document.createElementNS(SVG_NS, "g");
+        g.setAttribute("class", "rot-handle");
+        g.setAttribute("data-action", action);
+        g.setAttribute(idAttr, id);
+        const hit = document.createElementNS(SVG_NS, "circle");
+        hit.setAttribute("cx", cx); hit.setAttribute("cy", cy); hit.setAttribute("r", "12"); hit.setAttribute("fill", "transparent");
+        g.appendChild(hit);
+        const dot = document.createElementNS(SVG_NS, "circle");
+        dot.setAttribute("class", "rot-dot");
+        dot.setAttribute("cx", cx); dot.setAttribute("cy", cy); dot.setAttribute("r", "4");
+        dot.setAttribute("fill", "#f59e0b"); dot.setAttribute("stroke", "#0f172a"); dot.setAttribute("stroke-width", "1.5");
+        dot.setAttribute("pointer-events", "none");
+        g.appendChild(dot);
+        const ic = document.createElementNS(SVG_NS, "g");
+        ic.setAttribute("class", "rot-icon");
+        ic.setAttribute("pointer-events", "none");
+        const bg = document.createElementNS(SVG_NS, "circle");
+        bg.setAttribute("cx", cx); bg.setAttribute("cy", cy); bg.setAttribute("r", "10");
+        bg.setAttribute("fill", "#6366f1"); bg.setAttribute("stroke", "#ffffff"); bg.setAttribute("stroke-width", "1.5");
+        ic.appendChild(bg);
+        const t = document.createElementNS(SVG_NS, "text");
+        t.setAttribute("x", cx); t.setAttribute("y", cy);
+        t.setAttribute("text-anchor", "middle"); t.setAttribute("dominant-baseline", "central");
+        t.setAttribute("fill", "#ffffff"); t.setAttribute("font-size", "14"); t.setAttribute("font-weight", "bold");
+        t.textContent = "↻";
+        ic.appendChild(t);
+        g.appendChild(ic);
+        parent.appendChild(g);
+      });
+    }
+
+    // 部屋を中心まわりに時計回りへ90°回転。中心を保つため、位置が0.5マスずれる場合は1マスのセルを0.5マス×4に分けて配置する
+    function rotateRoomAboutCenter(room) {
+      const b = getRoomBBox(room);
+      const cx = b.x + b.w / 2, cy = b.y + b.h / 2;
+      const nx0 = cx - b.h / 2, ny0 = cy - b.w / 2;
+      let sx = 0, sy = 0;
+      if (nx0 < 0) sx = -nx0;
+      if (ny0 < 0) sy = -ny0;
+      const rot = (px, py) => ({ x: cx - (py - cy) + sx, y: cy + (px - cx) + sy });
+      const isInt = v => Math.abs(v - Math.round(v)) < 1e-9;
+      if (room.cells) {
+        const out = [];
+        room.cells.forEach(c => {
+          const sz = cellSizeOf(c);
+          const q = rot(c.x, c.y + sz);
+          if (sz === 1 && !(isInt(q.x) && isInt(q.y))) {
+            [0, 0.5].forEach(i => [0, 0.5].forEach(j => out.push({ x: q.x + i, y: q.y + j, s: 0.5 })));
+          } else {
+            const t = { x: q.x, y: q.y };
+            if (c.s) t.s = c.s;
+            out.push(t);
+          }
+        });
+        room.cells = out;
+      }
+      if (room.points) room.points = room.points.map(pt => rot(pt.x, pt.y));
+      room.x = nx0 + sx; room.y = ny0 + sy; room.w = b.h; room.h = b.w;
+    }
+
+    function rotateRoomById(roomId) {
+      const room = appState.rooms.find(r => r.id === roomId);
+      if (!room) return;
+      const snap = snapshotRoomGeom(room);
+      const before = roomSetbackPenetration(room);
+      rotateRoomAboutCenter(room);
+      const blocked = setbackBlocked(before, roomSetbackPenetration(room));
+      restoreRoomGeom(room, snap);
+      if (blocked) { notifySetbackBlocked(); return; }
+      saveHistory();
+      rotateRoomAboutCenter(room);
+      render();
+      showToast("部屋を中心まわりに90°回転しました", "🔄");
+    }
+
+    function rotateFittingById(fittingId) {
+      const fit = appState.fittings.find(f => f.id === fittingId);
+      if (!fit) return;
+      const n = fit.widthUnits;
+      const prev = { x: fit.x, y: fit.y, o: fit.orientation, hs: fit.hingeSide, ss: fit.swingSide };
+      const before = fittingSetbackPenetration(fit);
+      let nx, ny;
+      if (fit.type === "SWING_DOOR") {
+        // 開き戸は吊元(ヒンジ)を軸に時計回りへ90°回転する
+        const left = fit.hingeSide === "left";
+        if (fit.orientation === "h") {
+          const hx = left ? fit.x : fit.x + n, hy = fit.y;
+          nx = hx; ny = left ? hy : hy - n; fit.orientation = "v";
+          fit.swingSide = fit.swingSide === "front" ? "back" : "front";
+        } else {
+          const hx = fit.x, hy = left ? fit.y : fit.y + n;
+          nx = left ? hx - n : hx; ny = hy; fit.orientation = "h";
+          fit.hingeSide = left ? "right" : "left";
+        }
+      } else if (fit.orientation === "h") { nx = fit.x + n / 2; ny = fit.y - n / 2; fit.orientation = "v"; }
+      else { nx = fit.x - n / 2; ny = fit.y + n / 2; fit.orientation = "h"; }
+      const spanX = fit.orientation === "h" ? n : 0, spanY = fit.orientation === "v" ? n : 0;
+      fit.x = Math.max(0, Math.min(GRID_COLS - spanX, Math.round(nx)));
+      fit.y = Math.max(0, Math.min(GRID_ROWS - spanY, Math.round(ny)));
+      const blocked = setbackBlocked(before, fittingSetbackPenetration(fit));
+      const next = { x: fit.x, y: fit.y, o: fit.orientation, hs: fit.hingeSide, ss: fit.swingSide };
+      fit.x = prev.x; fit.y = prev.y; fit.orientation = prev.o; fit.hingeSide = prev.hs; fit.swingSide = prev.ss;
+      if (blocked) { notifySetbackBlocked(); return; }
+      saveHistory();
+      fit.x = next.x; fit.y = next.y; fit.orientation = next.o; fit.hingeSide = next.hs; fit.swingSide = next.ss;
+      render();
+      showToast(fit.type === "SWING_DOOR" ? "開き戸を吊元まわりに90°回転しました" : "建具を中心まわりに90°回転しました", "🔄");
+    }
+
+    function rotateEquipmentById(equipmentId) {
+      const eq = appState.equipment.find(e => e.id === equipmentId);
+      if (!eq) return;
+      const prev = { x: eq.x, y: eq.y, r: eq.rotation || 0 };
+      const before = equipmentSetbackPenetration(eq);
+      const b0 = getEquipmentBoxPx(eq);
+      const cx = b0.x + b0.w / 2, cy = b0.y + b0.h / 2;
+      eq.rotation = ((eq.rotation || 0) + 90) % 360;
+      const b1 = getEquipmentBoxPx(eq);
+      eq.x = Math.max(0, (cx - b1.w / 2) / GRID_SIZE);
+      eq.y = Math.max(0, (cy - b1.h / 2) / GRID_SIZE);
+      const blocked = setbackBlocked(before, equipmentSetbackPenetration(eq));
+      const next = { x: eq.x, y: eq.y, r: eq.rotation };
+      eq.x = prev.x; eq.y = prev.y; eq.rotation = prev.r;
+      if (blocked) { notifySetbackBlocked(); return; }
+      saveHistory();
+      eq.x = next.x; eq.y = next.y; eq.rotation = next.r;
+      render();
+      showToast("設備パーツを中心まわりに90°回転しました", "🔄");
+    }
 
     function getFittingEndpoints(fit) {
       const L = fit.widthUnits * GRID_SIZE;
@@ -1745,8 +2344,23 @@
       return { p1: { x: px, y: py }, p2: { x: px, y: py + L }, L, horizontal: false };
     }
 
+    // 建具の戸・窓の色(全種別で統一)
+    const FITTING_COLOR = "#38bdf8";
+
+    // 建具は壁の内法に表示: 開口の両端から壁厚の半分(150mmなら75mm)ずつ内側から戸・窓を描く
+    function insetFittingEndpoints(ep) {
+      const inset = Math.min(mmToPx(WALL_THICKNESS_MM) / 2, ep.L / 4);
+      const dir = ep.horizontal ? { x: 1, y: 0 } : { x: 0, y: 1 };
+      return {
+        p1: { x: ep.p1.x + dir.x * inset, y: ep.p1.y + dir.y * inset },
+        p2: { x: ep.p2.x - dir.x * inset, y: ep.p2.y - dir.y * inset },
+        L: ep.L - inset * 2,
+        horizontal: ep.horizontal
+      };
+    }
+
     function drawWallGap(g, p1, p2, horizontal) {
-      const thick = 6;
+      const thick = mmToPx(WALL_THICKNESS_MM);
       const rect = document.createElementNS(SVG_NS, "rect");
       if (horizontal) {
         rect.setAttribute("x", Math.min(p1.x, p2.x));
@@ -1764,7 +2378,7 @@
     }
 
     function drawWallSolid(g, p1, p2, horizontal) {
-      const thick = 8;
+      const thick = mmToPx(WALL_THICKNESS_MM);
       const rect = document.createElementNS(SVG_NS, "rect");
       if (horizontal) {
         rect.setAttribute("x", Math.min(p1.x, p2.x));
@@ -1777,9 +2391,9 @@
         rect.setAttribute("width", thick);
         rect.setAttribute("height", Math.max(1, Math.abs(p2.y - p1.y)));
       }
-      rect.setAttribute("fill", "#475569");
-      rect.setAttribute("stroke", "#1e293b");
-      rect.setAttribute("stroke-width", "1");
+      rect.setAttribute("fill", WALL_COLOR);
+      rect.setAttribute("stroke", WALL_EDGE_COLOR);
+      rect.setAttribute("stroke-width", "0.8");
       g.appendChild(rect);
     }
 
@@ -1797,8 +2411,8 @@
       leaf.setAttribute("y1", hinge.y);
       leaf.setAttribute("x2", leafTip.x);
       leaf.setAttribute("y2", leafTip.y);
-      leaf.setAttribute("stroke", "#f59e0b");
-      leaf.setAttribute("stroke-width", "2");
+      leaf.setAttribute("stroke", FITTING_COLOR);
+      leaf.setAttribute("stroke-width", "1.5");
       g.appendChild(leaf);
 
       const v1 = { x: other.x - hinge.x, y: other.y - hinge.y };
@@ -1809,7 +2423,7 @@
       const arc = document.createElementNS(SVG_NS, "path");
       arc.setAttribute("d", `M ${other.x} ${other.y} A ${ep.L} ${ep.L} 0 0 ${sweepFlag} ${leafTip.x} ${leafTip.y}`);
       arc.setAttribute("fill", "none");
-      arc.setAttribute("stroke", "#f59e0b");
+      arc.setAttribute("stroke", FITTING_COLOR);
       arc.setAttribute("stroke-width", "1.2");
       arc.setAttribute("stroke-dasharray", "3 2");
       g.appendChild(arc);
@@ -1818,7 +2432,7 @@
       hingeDot.setAttribute("cx", hinge.x);
       hingeDot.setAttribute("cy", hinge.y);
       hingeDot.setAttribute("r", "2.5");
-      hingeDot.setAttribute("fill", "#f59e0b");
+      hingeDot.setAttribute("fill", FITTING_COLOR);
       g.appendChild(hingeDot);
     }
 
@@ -1836,12 +2450,12 @@
       const dir = ep.horizontal ? { x: 1, y: 0 } : { x: 0, y: 1 };
       const seg = ep.L / n;
       const overlap = Math.max(3, seg * 0.12);
-      const trackOffset = 2;
+      const trackOffset = mmToPx(WALL_THICKNESS_MM) * 0.25;
       const at = (t, off) => ({
         x: ep.p1.x + dir.x * t + perp.x * off,
         y: ep.p1.y + dir.y * t + perp.y * off
       });
-      const stroke = fit.type === "FLOOR_WINDOW" ? "#0ea5e9" : "#38bdf8";
+      const stroke = fit.type === "FLOOR_WINDOW" ? FITTING_COLOR : FITTING_COLOR;
 
       for (let i = 0; i < n; i++) {
         const t1 = i * seg - (i > 0 ? overlap : 0);
@@ -1852,21 +2466,46 @@
         panel.setAttribute("x1", a.x); panel.setAttribute("y1", a.y);
         panel.setAttribute("x2", b2.x); panel.setAttribute("y2", b2.y);
         panel.setAttribute("stroke", stroke);
-        panel.setAttribute("stroke-width", "2");
+        panel.setAttribute("stroke-width", "1.2");
         g.appendChild(panel);
       }
 
-      // 召し合わせ部の短線
-      const tickLen = 8;
-      for (let k = 1; k < n; k++) {
+      // 召し合わせ部の記号
+      const tickLen = mmToPx(WALL_THICKNESS_MM);
+      if (fit.type === "FLOOR_WINDOW") {
+        // 掃き出し窓: 中心に小さな枠、壁の両側へ突き出す縦線と切断(矢印)記号 → 腰窓の引違いと区別
+        const wallPx = mmToPx(WALL_THICKNESS_MM);
+        const E = wallPx / 2 + 7;
+        const line = (a, b) => {
+          const l = document.createElementNS(SVG_NS, "line");
+          l.setAttribute("x1", a.x); l.setAttribute("y1", a.y); l.setAttribute("x2", b.x); l.setAttribute("y2", b.y);
+          l.setAttribute("stroke", FITTING_COLOR); l.setAttribute("stroke-width", "1");
+          g.appendChild(l);
+        };
+        const P = (m, d, u) => ({ x: m.x + dir.x * d + perp.x * u, y: m.y + dir.y * d + perp.y * u });
+        for (let k = 1; k < n; k++) {
+          const m = at(k * seg, 0);
+          line(P(m, 0, -E), P(m, 0, E));
+          line(P(m, -3, E - 3), P(m, 3, E + 1));
+          line(P(m, 3, -E + 3), P(m, -3, -E - 1));
+          const hs = wallPx * 0.8;
+          const box = document.createElementNS(SVG_NS, "rect");
+          const c0 = P(m, -hs, -hs), c1 = P(m, hs, hs);
+          box.setAttribute("x", Math.min(c0.x, c1.x)); box.setAttribute("y", Math.min(c0.y, c1.y));
+          box.setAttribute("width", Math.abs(c1.x - c0.x)); box.setAttribute("height", Math.abs(c1.y - c0.y));
+          box.setAttribute("fill", "#0f172a"); box.setAttribute("stroke", FITTING_COLOR); box.setAttribute("stroke-width", "1");
+          g.appendChild(box);
+        }
+      }
+      for (let k = 1; k < n && fit.type !== "FLOOR_WINDOW"; k++) {
         const m = at(k * seg, 0);
         const tick = document.createElementNS(SVG_NS, "line");
         tick.setAttribute("x1", m.x - perp.x * tickLen / 2);
         tick.setAttribute("y1", m.y - perp.y * tickLen / 2);
         tick.setAttribute("x2", m.x + perp.x * tickLen / 2);
         tick.setAttribute("y2", m.y + perp.y * tickLen / 2);
-        tick.setAttribute("stroke", "#0369a1");
-        tick.setAttribute("stroke-width", "2");
+        tick.setAttribute("stroke", FITTING_COLOR);
+        tick.setAttribute("stroke-width", "1.2");
         g.appendChild(tick);
       }
     }
@@ -1884,9 +2523,13 @@
       const leafLen = 0.5 * GRID_SIZE; // 扉(^)1枚あたりの固定幅(0.5マス)
       const halfLeaf = leafLen / 2;
       // 底辺からの角度を60度にすることで、頂点(折れ角)が60度の鋭角になる
+      const wallPx = mmToPx(WALL_THICKNESS_MM);
+      // 参考図: 壁の外面を底辺とする頂角60度の「∧」(底辺は開口の端に接する)
       const bulge = halfLeaf * Math.tan(60 * Math.PI / 180);
 
-      function drawLeaf(segStart, segEnd) {
+      function drawLeaf(segStart0, segEnd0) {
+        const segStart = { x: segStart0.x + perp.x * wallPx / 2, y: segStart0.y + perp.y * wallPx / 2 };
+        const segEnd = { x: segEnd0.x + perp.x * wallPx / 2, y: segEnd0.y + perp.y * wallPx / 2 };
         const apex = {
           x: (segStart.x + segEnd.x) / 2 + perp.x * bulge,
           y: (segStart.y + segEnd.y) / 2 + perp.y * bulge
@@ -1895,16 +2538,16 @@
         const poly = document.createElementNS(SVG_NS, "polyline");
         poly.setAttribute("points", [segStart, apex, segEnd].map(p => `${p.x},${p.y}`).join(" "));
         poly.setAttribute("fill", "none");
-        poly.setAttribute("stroke", "#22c55e");
-        poly.setAttribute("stroke-width", "2");
+        poly.setAttribute("stroke", FITTING_COLOR);
+        poly.setAttribute("stroke-width", "1.2");
         poly.setAttribute("stroke-linejoin", "round");
         g.appendChild(poly);
 
         const apexDot = document.createElementNS(SVG_NS, "circle");
         apexDot.setAttribute("cx", apex.x);
         apexDot.setAttribute("cy", apex.y);
-        apexDot.setAttribute("r", "2");
-        apexDot.setAttribute("fill", "#16a34a");
+        apexDot.setAttribute("r", "0");
+        apexDot.setAttribute("fill", FITTING_COLOR);
         g.appendChild(apexDot);
       }
 
@@ -1942,14 +2585,14 @@
       drawWallSolid(g, wallP1, wallP2, ep.horizontal);
 
       const perp = ep.horizontal ? { x: 0, y: 1 } : { x: 1, y: 0 };
-      const off = 3;
+      const off = 0;
       const panel = document.createElementNS(SVG_NS, "line");
       panel.setAttribute("x1", wallP1.x + perp.x * off);
       panel.setAttribute("y1", wallP1.y + perp.y * off);
       panel.setAttribute("x2", wallP2.x + perp.x * off);
       panel.setAttribute("y2", wallP2.y + perp.y * off);
-      panel.setAttribute("stroke", "#a78bfa");
-      panel.setAttribute("stroke-width", "2");
+      panel.setAttribute("stroke", FITTING_COLOR);
+      panel.setAttribute("stroke-width", "1.2");
       g.appendChild(panel);
     }
 
@@ -1958,7 +2601,7 @@
       drawWallGap(g, ep.p1, ep.p2, ep.horizontal);
 
       const perp = ep.horizontal ? { x: 0, y: 1 } : { x: 1, y: 0 };
-      const offsets = [-1.6, 1.6];
+      const offsets = [-mmToPx(WALL_THICKNESS_MM) * 0.22, mmToPx(WALL_THICKNESS_MM) * 0.22];
       offsets.forEach(off => {
         const a = { x: ep.p1.x + perp.x * off, y: ep.p1.y + perp.y * off };
         const b = { x: ep.p2.x + perp.x * off, y: ep.p2.y + perp.y * off };
@@ -1967,20 +2610,20 @@
         line.setAttribute("y1", a.y);
         line.setAttribute("x2", b.x);
         line.setAttribute("y2", b.y);
-        line.setAttribute("stroke", "#38bdf8");
-        line.setAttribute("stroke-width", "1.5");
+        line.setAttribute("stroke", FITTING_COLOR);
+        line.setAttribute("stroke-width", "1");
         g.appendChild(line);
       });
 
       // 枠(端部の縦線)
       [ep.p1, ep.p2].forEach(p => {
         const tick = document.createElementNS(SVG_NS, "line");
-        tick.setAttribute("x1", p.x - perp.x * 3);
-        tick.setAttribute("y1", p.y - perp.y * 3);
-        tick.setAttribute("x2", p.x + perp.x * 3);
-        tick.setAttribute("y2", p.y + perp.y * 3);
-        tick.setAttribute("stroke", "#0284c7");
-        tick.setAttribute("stroke-width", "1.5");
+        tick.setAttribute("x1", p.x - perp.x * mmToPx(WALL_THICKNESS_MM) / 2);
+        tick.setAttribute("y1", p.y - perp.y * mmToPx(WALL_THICKNESS_MM) / 2);
+        tick.setAttribute("x2", p.x + perp.x * mmToPx(WALL_THICKNESS_MM) / 2);
+        tick.setAttribute("y2", p.y + perp.y * mmToPx(WALL_THICKNESS_MM) / 2);
+        tick.setAttribute("stroke", FITTING_COLOR);
+        tick.setAttribute("stroke-width", "1");
         g.appendChild(tick);
       });
     }
@@ -2002,7 +2645,7 @@
         leaf.setAttribute("y1", hinge.y);
         leaf.setAttribute("x2", tip.x);
         leaf.setAttribute("y2", tip.y);
-        leaf.setAttribute("stroke", "#a16207");
+        leaf.setAttribute("stroke", FITTING_COLOR);
         leaf.setAttribute("stroke-width", "2");
         g.appendChild(leaf);
 
@@ -2014,7 +2657,7 @@
         const arc = document.createElementNS(SVG_NS, "path");
         arc.setAttribute("d", `M ${mid.x} ${mid.y} A ${half} ${half} 0 0 ${sweepFlag} ${tip.x} ${tip.y}`);
         arc.setAttribute("fill", "none");
-        arc.setAttribute("stroke", "#a16207");
+        arc.setAttribute("stroke", FITTING_COLOR);
         arc.setAttribute("stroke-width", "1.2");
         arc.setAttribute("stroke-dasharray", "3 2");
         g.appendChild(arc);
@@ -2023,7 +2666,7 @@
         hingeDot.setAttribute("cx", hinge.x);
         hingeDot.setAttribute("cy", hinge.y);
         hingeDot.setAttribute("r", "2.5");
-        hingeDot.setAttribute("fill", "#a16207");
+        hingeDot.setAttribute("fill", FITTING_COLOR);
         g.appendChild(hingeDot);
       });
     }
@@ -2120,14 +2763,13 @@
       outline.setAttribute("pointer-events", "none");
       controlsGroup.appendChild(outline);
 
-      const topY = minY - pad - 14;
+      const topY = minY - pad - 40; // 回転ポイントと重ならない高さ
       let ix = minX;
       const addBtn = (label, action, bg) => {
         addFittingIconBtn(controlsGroup, ix, topY, bg, label, action, fit.id);
         ix += 24;
       };
       addBtn("🗑", "delete-fitting", "#ef4444");
-      addBtn("🔄", "rotate-fitting", "#6366f1");
 
       if (fit.type === "SWING_DOOR") {
         addBtn(fit.swingSide === "front" ? "前" : "後", "toggle-swing-side", "#f59e0b");
@@ -2139,6 +2781,8 @@
       } else if (fit.type === "BIFOLD") {
         addBtn((fit.leafCount === 1 ? 1 : 2) + "枚", "toggle-leaf-count", "#22c55e");
       }
+
+      addRotateHandles(controlsGroup, minX - pad, minY - pad, Math.max(maxX - minX, 1) + pad * 2, Math.max(maxY - minY, 1) + pad * 2, "rotate-fitting", "data-fitting-id", fit.id, 10);
 
       const typeDef = FITTING_TYPES[fit.type];
       if (typeDef && typeDef.resizable) {
@@ -2170,11 +2814,12 @@
         visual.setAttribute("pointer-events", "none");
         g.appendChild(visual);
 
-        if (fit.type === "SWING_DOOR") renderSwingDoorVisual(fit, ep, visual);
-        else if (fit.type === "SLIDING_DOUBLE" || fit.type === "FLOOR_WINDOW") renderSlidingDoubleVisual(fit, ep, visual);
-        else if (fit.type === "SLIDING_SINGLE") renderSlidingSingleVisual(fit, ep, visual);
-        else if (fit.type === "BIFOLD") renderBifoldVisual(fit, ep, visual);
-        else if (fit.type === "SASH_WINDOW") renderSashWindowVisual(fit, ep, visual);
+        const epd = (fit.type === "GATE" || fit.type === "FENCE") ? ep : insetFittingEndpoints(ep);
+        if (fit.type === "SWING_DOOR") renderSwingDoorVisual(fit, epd, visual);
+        else if (fit.type === "SLIDING_DOUBLE" || fit.type === "FLOOR_WINDOW") renderSlidingDoubleVisual(fit, epd, visual);
+        else if (fit.type === "SLIDING_SINGLE") renderSlidingSingleVisual(fit, epd, visual);
+        else if (fit.type === "BIFOLD") renderBifoldVisual(fit, epd, visual);
+        else if (fit.type === "SASH_WINDOW") renderSashWindowVisual(fit, epd, visual);
         else if (fit.type === "GATE") renderGateVisual(fit, ep, visual);
         else if (fit.type === "FENCE") renderFenceVisual(fit, ep, visual);
 
@@ -2210,6 +2855,111 @@
       };
     }
 
+    // --- 設備パーツの図(寸法に合わせて引き伸ばして表示) ---
+    // 各図は元画像の座標系(vw×vh)で定義し、配置サイズ(幅×奥行)へ非等比で拡大縮小する。f=true は塗り(面)。
+    const EQUIPMENT_ART = {
+      SINK_1820: { vw: 1400, vh: 355, shapes: [
+        ["rect", 2, 2, 1396, 351, 0, true], ["line", 2, 17, 1398, 17],
+        ["line", 13, 17, 13, 353], ["line", 1387, 17, 1387, 353],
+        ["rect", 100, 57, 320, 272, 14], ["rect", 106, 63, 308, 260, 10],
+        ["rect", 180, 71, 162, 24, 9], ["rect", 186, 77, 150, 12, 5],
+        ["circle", 263, 150, 34], ["circle", 263, 150, 22], ["circle", 263, 150, 12],
+        ["line", 239, 126, 287, 174], ["line", 287, 126, 239, 174],
+        ["circle", 180, 243, 55], ["circle", 180, 243, 40], ["circle", 180, 243, 27],
+        ["line", 141, 204, 219, 282], ["line", 219, 204, 141, 282],
+        ["circle", 340, 243, 55], ["circle", 340, 243, 40], ["circle", 340, 243, 27],
+        ["line", 301, 204, 379, 282], ["line", 379, 204, 301, 282],
+        ["rect", 880, 80, 312, 228, 22],
+        ["rect", 983, 29, 108, 40, 20],
+        ["circle", 1037, 125, 31], ["circle", 1037, 125, 17], ["circle", 1037, 125, 8],
+        ["rect", 1021, 36, 28, 62, 13],
+        ["line", 1030, 66, 977, 168], ["line", 1020, 72, 967, 168], ["circle", 972, 168, 4]
+      ] },
+      SINK_2730: { vw: 860, vh: 262, shapes: [
+        ["rect", 2, 2, 856, 258, 0, true], ["line", 2, 17, 858, 17],
+        ["line", 573, 17, 573, 260], ["rect", 45, 45, 278, 202, 22],
+        ["rect", 677, 44, 82, 19, 9],
+        ["circle", 653, 137, 48], ["circle", 783, 137, 48],
+        ["line", 612, 100, 632, 120], ["line", 694, 100, 674, 120], ["line", 612, 175, 632, 155], ["line", 694, 175, 674, 155],
+        ["line", 742, 100, 762, 120], ["line", 824, 100, 804, 120], ["line", 742, 175, 762, 155], ["line", 824, 175, 804, 155],
+        ["line", 573, 230, 858, 230], ["line", 573, 207, 858, 207],
+        ["rect", 611, 240, 24, 12], ["rect", 672, 235, 92, 22], ["rect", 768, 242, 10, 10], ["rect", 798, 240, 24, 12]
+      ] },
+      TOILET_BOWL: { vw: 290, vh: 450, shapes: [
+        ["path", "M5 5 H273 V95 L265 190 L262 198 L16 198 L12 190 L5 95 Z", true],
+        ["path", "M15 118 H265 L258 290 Q256 322 248 355 L226 395 L198 425 L160 442 H120 L82 425 L52 395 L30 355 Q22 322 22 290 Z", true],
+        ["line", 18, 76, 260, 76], ["rect", 15, 89, 18, 17], ["rect", 273, 18, 10, 20]
+      ] },
+      UNIT_BATH: { vw: 600, vh: 585, shapes: [
+        ["rect", 2, 2, 596, 581, 0, true], ["rect", 17, 17, 566, 551],
+        ["line", 275, 17, 275, 568],
+        ["path", "M60 38 Q145 30 232 38 Q248 45 248 70 L252 440 Q252 495 232 508 Q145 525 58 508 Q40 495 40 440 L44 70 Q44 45 60 38 Z"],
+        ["path", "M70 52 Q145 45 222 52 Q238 58 238 75 L242 400 Q242 440 215 448 Q145 458 75 448 Q48 440 48 400 L52 75 Q52 58 70 52 Z"],
+        ["circle", 145, 72, 9],
+        ["rect", 283, 25, 291, 533],
+        ["rect", 285, 27, 43, 58],
+        ["line", 285, 36, 328, 36], ["line", 285, 44, 328, 44], ["line", 285, 52, 328, 52], ["line", 285, 60, 328, 60],
+        ["line", 285, 68, 328, 68], ["line", 285, 76, 328, 76],
+        ["rect", 337, 570, 235, 12]
+      ] },
+      WASHBASIN: { vw: 380, vh: 315, shapes: [
+        ["rect", 3, 3, 372, 309, 0, true], ["rect", 3, 3, 372, 70, 6],
+        ["ellipse", 190, 195, 143, 98], ["ellipse", 190, 195, 120, 78], ["circle", 189, 173, 14]
+      ] }
+    };
+
+    function equipmentArtKey(eq) {
+      if (eq.type === "SINK") {
+        const w = eq.widthMm || EQUIPMENT_TYPES.SINK.defaultWidthMm;
+        return w >= 2275 ? "SINK_1820" : "SINK_2730"; // 画像: 3口コンロ+シンク=1.5間(2730) / 2口+グリル+シンク=1間(1820)
+      }
+      return eq.type;
+    }
+
+    function buildEquipmentArt(eq, def, wPx, hPx) {
+      const art = EQUIPMENT_ART[equipmentArtKey(eq)];
+      if (!art) return null;
+      const svg = document.createElementNS(SVG_NS, "svg");
+      svg.setAttribute("x", 0); svg.setAttribute("y", 0);
+      svg.setAttribute("width", wPx); svg.setAttribute("height", hPx);
+      svg.setAttribute("viewBox", `0 0 ${art.vw} ${art.vh}`);
+      svg.setAttribute("preserveAspectRatio", "none");
+      svg.setAttribute("overflow", "visible");
+      art.shapes.forEach(sh => {
+        const kind = sh[0];
+        let el;
+        let filled = false;
+        if (kind === "rect") {
+          el = document.createElementNS(SVG_NS, "rect");
+          el.setAttribute("x", sh[1]); el.setAttribute("y", sh[2]); el.setAttribute("width", sh[3]); el.setAttribute("height", sh[4]);
+          if (sh[5]) { el.setAttribute("rx", sh[5]); el.setAttribute("ry", sh[5]); }
+          filled = !!sh[6];
+        } else if (kind === "line") {
+          el = document.createElementNS(SVG_NS, "line");
+          el.setAttribute("x1", sh[1]); el.setAttribute("y1", sh[2]); el.setAttribute("x2", sh[3]); el.setAttribute("y2", sh[4]);
+        } else if (kind === "circle") {
+          el = document.createElementNS(SVG_NS, "ellipse");
+          el.setAttribute("cx", sh[1]); el.setAttribute("cy", sh[2]); el.setAttribute("rx", sh[3]); el.setAttribute("ry", sh[3]);
+        } else if (kind === "ellipse") {
+          el = document.createElementNS(SVG_NS, "ellipse");
+          el.setAttribute("cx", sh[1]); el.setAttribute("cy", sh[2]); el.setAttribute("rx", sh[3]); el.setAttribute("ry", sh[4]);
+        } else if (kind === "path") {
+          el = document.createElementNS(SVG_NS, "path");
+          el.setAttribute("d", sh[1]);
+          filled = !!sh[2];
+        }
+        if (!el) return;
+        el.setAttribute("fill", filled ? (def.color || "#e2e8f0") : "none");
+        if (filled) el.setAttribute("fill-opacity", "0.85");
+        el.setAttribute("stroke", "#0f172a");
+        el.setAttribute("stroke-width", "1");
+        el.setAttribute("stroke-linejoin", "round");
+        el.setAttribute("vector-effect", "non-scaling-stroke");
+        svg.appendChild(el);
+      });
+      return svg;
+    }
+
     function renderEquipment() {
       if (!equipmentGroup) return;
       equipmentGroup.innerHTML = "";
@@ -2223,42 +2973,24 @@
         g.setAttribute("data-equipment-id", eq.id);
         g.style.cursor = "pointer";
 
-        const rect = document.createElementNS(SVG_NS, "rect");
-        rect.setAttribute("x", box.x);
-        rect.setAttribute("y", box.y);
-        rect.setAttribute("width", box.w);
-        rect.setAttribute("height", box.h);
-        rect.setAttribute("fill", def.color || "#0ea5e9");
-        rect.setAttribute("fill-opacity", "0.85");
-        rect.setAttribute("stroke", def.border || "#0369a1");
-        rect.setAttribute("stroke-width", "1.5");
-        g.appendChild(rect);
-
         const dimW = eq.widthMm || def.defaultWidthMm;
         const dimD = eq.depthMm || def.defaultDepthMm;
-        const compact = !!def.compact;
-        const showLabel = !compact || (box.w >= 36 && box.h >= 26);
-        const iconSize = compact ? Math.max(8, Math.min(13, Math.min(box.w, box.h) * 0.8)) : 13;
-
-        const icon = document.createElementNS(SVG_NS, "text");
-        icon.setAttribute("x", box.x + box.w / 2);
-        icon.setAttribute("y", showLabel ? box.y + box.h / 2 - 2 : box.y + box.h / 2 + iconSize * 0.35);
-        icon.setAttribute("text-anchor", "middle");
-        icon.setAttribute("font-size", iconSize);
-        icon.textContent = def.icon || "⚙️";
-        g.appendChild(icon);
-
-        if (showLabel) {
-          const label = document.createElementNS(SVG_NS, "text");
-          label.setAttribute("x", box.x + box.w / 2);
-          label.setAttribute("y", box.y + box.h / 2 + 11);
-          label.setAttribute("text-anchor", "middle");
-          label.setAttribute("font-size", "8");
-          label.setAttribute("fill", "#0c1a2e");
-          label.setAttribute("font-weight", "bold");
-          label.textContent = `${dimW}×${dimD}`;
-          g.appendChild(label);
+        // 図は未回転の向き(幅×奥行)で描き、回転角に合わせて箱の中心まわりに回す
+        const lw = mmToPx(dimW), lh = mmToPx(dimD);
+        const rot = eq.rotation || 0;
+        const art = document.createElementNS(SVG_NS, "g");
+        art.setAttribute("transform", `translate(${box.x + box.w / 2} ${box.y + box.h / 2}) rotate(${rot}) scale(${eq.mirror ? -1 : 1} 1) translate(${-lw / 2} ${-lh / 2})`);
+        const drawing = buildEquipmentArt(eq, def, lw, lh);
+        if (drawing) {
+          art.appendChild(drawing);
+        } else {
+          const rect = document.createElementNS(SVG_NS, "rect");
+          rect.setAttribute("width", lw); rect.setAttribute("height", lh);
+          rect.setAttribute("fill", def.color || "#0ea5e9"); rect.setAttribute("fill-opacity", "0.85");
+          rect.setAttribute("stroke", def.border || "#0369a1"); rect.setAttribute("stroke-width", "1.5");
+          art.appendChild(rect);
         }
+        g.appendChild(art);
 
         const tip = document.createElementNS(SVG_NS, "title");
         tip.textContent = `${def.name || ""} 幅${dimW}mm × 奥行${dimD}mm`;
@@ -2288,15 +3020,18 @@
       outline.setAttribute("pointer-events", "none");
       controlsGroup.appendChild(outline);
 
-      const topY = box.y - pad - 14;
+      addRotateHandles(controlsGroup, box.x - pad, box.y - pad, box.w + pad * 2, box.h + pad * 2, "rotate-equipment", "data-equipment-id", eq.id, 0);
+
+      const topY = box.y - pad - 30; // 回転ポイントと重ならない高さ
       let ix = box.x - pad;
       const addBtn = (label, action, bg) => {
         addEquipmentIconBtn(controlsGroup, ix, topY, bg, label, action, eq.id);
         ix += 24;
       };
       addBtn("🗑", "delete-equipment", "#ef4444");
-      addBtn("🔄", "rotate-equipment", "#6366f1");
-      if (!(EQUIPMENT_TYPES[eq.type] || {}).fixedSize) addBtn("📐", "edit-equipment-size", "#0ea5e9");
+      if (eq.type === "SINK" || eq.type === "UNIT_BATH") addBtn("⇋", "mirror-equipment", eq.mirror ? "#7e22ce" : "#a855f7");
+      if (eq.type === "SINK") addBtn((eq.widthMm || 1820) >= 2275 ? "1.5間" : "1間", "toggle-sink-size", "#14b8a6");
+      addBtn("📐", "edit-equipment-size", "#0ea5e9");
     }
 
     function addEquipmentIconBtn(parent, x, y, bg, label, action, equipmentId) {
@@ -2471,28 +3206,93 @@
       }
     }
 
+    function modalSiteDims() {
+      if (selectedPattern === 'flag') return { w: selectedFlag.w, h: selectedFlag.h + selectedFlag.poleH };
+      return { w: parseInt(siteWidthInput.value), h: parseInt(siteHeightInput.value) };
+    }
+
+    function modalTempSite() {
+      const d = modalSiteDims();
+      return { pattern: selectedPattern, offsetX: 0, offsetY: 0, width: d.w, height: d.h,
+        roadWidths: Object.assign({}, selectedRoadWidths), flag: Object.assign({}, selectedFlag) };
+    }
+
+    function refreshPatternButtons() {
+      document.querySelectorAll(".pattern-btn").forEach(btn => {
+        const on = btn.getAttribute("data-pattern") === selectedPattern;
+        btn.className = on
+          ? "pattern-btn bg-emerald-600 text-white p-1.5 rounded-lg font-medium text-center border border-emerald-500 shadow text-[11px]"
+          : "pattern-btn bg-slate-800 text-slate-300 p-1.5 rounded-lg font-medium text-center border border-slate-700 hover:text-white text-[11px]";
+      });
+      const roads = SITE_PATTERNS[selectedPattern].roads;
+      ["S", "N", "E", "W"].forEach(d => {
+        const el = document.getElementById("roadWidthGroup" + d);
+        if (el) el.classList.toggle("hidden", !roads.includes(d));
+      });
+      const isFlag = selectedPattern === 'flag';
+      const std = document.getElementById("siteStdSizeBlock");
+      const fl = document.getElementById("siteFlagBlock");
+      if (std) std.classList.toggle("hidden", isFlag);
+      if (fl) fl.classList.toggle("hidden", !isFlag);
+    }
+
     function updateSiteModalDisplay() {
       if (!siteWidthInput || !siteHeightInput) return;
-      const w = parseInt(siteWidthInput.value);
-      const h = parseInt(siteHeightInput.value);
       const unitM = selectedGridUnitM;
 
+      // 旗竿地の入力を整合させる(竿は旗の幅の中に収める)
+      const fv = id => parseInt(document.getElementById(id).value);
+      selectedFlag.w = fv("flagWInput"); selectedFlag.h = fv("flagHInput");
+      selectedFlag.poleW = Math.min(fv("poleWInput"), selectedFlag.w);
+      const poleXInput = document.getElementById("poleXInput");
+      poleXInput.max = Math.max(0, selectedFlag.w - selectedFlag.poleW);
+      selectedFlag.poleX = Math.max(0, Math.min(fv("poleXInput"), selectedFlag.w - selectedFlag.poleW));
+      poleXInput.value = selectedFlag.poleX;
+      selectedFlag.poleH = fv("poleHInput");
+
+      const mt = n => `${n} マス (${(n * unitM).toFixed(2)} m)`;
+      const w = parseInt(siteWidthInput.value), h = parseInt(siteHeightInput.value);
       if (siteWidthDisp) siteWidthDisp.textContent = `${w} マス (${(w * unitM).toFixed(1)} m)`;
       if (siteHeightDisp) siteHeightDisp.textContent = `${h} マス (${(h * unitM).toFixed(1)} m)`;
+      const setTxt = (id, t) => { const el = document.getElementById(id); if (el) el.textContent = t; };
+      setTxt("flagWDisp", mt(selectedFlag.w)); setTxt("flagHDisp", mt(selectedFlag.h));
+      setTxt("poleWDisp", mt(selectedFlag.poleW));
+      setTxt("poleXDisp", selectedFlag.poleX === 0 ? "左端" : `${selectedFlag.poleX} マス (${(selectedFlag.poleX * unitM).toFixed(2)} m)`);
+      setTxt("poleHDisp", mt(selectedFlag.poleH));
 
-      const setbackCells = calcSetbackCells(w, h, selectedRoadSide, selectedRoadWidth, unitM);
-      const areaSqm = (w * h - setbackCells) * unitM * unitM;
+      const tmp = modalTempSite();
+      const cells = computeEffectiveSiteCells(tmp, unitM);
+      const areaSqm = cells * unitM * unitM;
       const areaTsubo = areaSqm / 3.305785;
+      const grossSqm = polyArea(getSiteGeom(tmp, unitM).base) * unitM * unitM;
 
       const setbackInfo = document.getElementById("setbackInfoText");
       if (setbackInfo) {
-        setbackInfo.textContent = selectedRoadWidth < 4
-          ? `※幅員${selectedRoadWidth}m: 道路中心から2m(道路境界線から${(2 - selectedRoadWidth / 2).toFixed(1)}m)までは配置不可。後退部分(約${(setbackCells * unitM * unitM).toFixed(1)}㎡)を敷地面積から除きます。`
-          : "※幅員4m以上は後退なし。";
+        const roads = SITE_PATTERNS[selectedPattern].roads;
+        const notes = [];
+        const sb = roads.filter(d => selectedRoadWidths[d] < 4);
+        if (sb.length) notes.push(`幅員3mの道路(${sb.map(d => ROAD_DIR_NAME[d]).join('・')})は道路中心から2m(道路境界線から0.5m)まで配置不可の後退部分となり、敷地面積から除きます。`);
+        if (SITE_PATTERNS[selectedPattern].corner && roads.some(d => selectedRoadWidths[d] === 4)) notes.push("角地で4m道路を含む場合は、角に隅切り(約2m)を設け、その部分は配置不可・敷地面積から除きます。");
+        if (!notes.length) notes.push("幅員4m以上は後退なし。");
+        if (selectedPattern === 'flag') notes.push("旗竿地の隣地部分には配置できません。");
+        setbackInfo.textContent = "※" + notes.join(" ※");
+        if (grossSqm - areaSqm > 0.05) setbackInfo.textContent += ` (除外 約${(grossSqm - areaSqm).toFixed(1)}㎡)`;
       }
 
       if (modalSiteAreaText) modalSiteAreaText.textContent = `${areaTsubo.toFixed(1)} 坪 (${areaSqm.toFixed(1)} ㎡)`;
       if (gridUnitCurrentText) gridUnitCurrentText.textContent = `現在: ${unitM.toFixed(2)} m/マス`;
+      refreshPatternButtons();
+      refreshRoadWidthButtons();
+    }
+
+    function selectPatternInModal(p) {
+      const before = patternDimClass(selectedPattern), after = patternDimClass(p);
+      selectedPattern = p;
+      if (before !== after && after !== 'flag') {
+        const d = SITE_DIM_DEFAULT[after];
+        siteWidthInput.value = d[0]; siteHeightInput.value = d[1];
+      }
+      updateSiteModalDisplay();
     }
 
     function setModuleSelection(moduleKey, unitM) {
@@ -2513,7 +3313,8 @@
     function refreshRoadWidthButtons() {
       document.querySelectorAll(".roadw-btn").forEach(btn => {
         const v = parseInt(btn.getAttribute("data-roadwidth"), 10);
-        btn.className = v === selectedRoadWidth
+        const d = btn.getAttribute("data-rdir");
+        btn.className = v === selectedRoadWidths[d]
           ? "roadw-btn bg-emerald-600 text-white p-2 rounded-lg font-medium text-center border border-emerald-500 shadow"
           : "roadw-btn bg-slate-800 text-slate-300 p-2 rounded-lg font-medium text-center border border-slate-700 hover:text-white";
       });
@@ -2521,20 +3322,17 @@
 
     function openSiteModal() {
       if (!siteModal) return;
-      siteWidthInput.value = appState.site.width;
-      siteHeightInput.value = appState.site.height;
-      selectedRoadSide = appState.site.roadSide;
-      selectedRoadWidth = getRoadWidthM(appState.site);
-      refreshRoadWidthButtons();
-
-      document.querySelectorAll(".road-btn").forEach(btn => {
-        const r = btn.getAttribute("data-road");
-        if (r === selectedRoadSide) {
-          btn.className = "road-btn bg-emerald-600 text-white p-2 rounded-lg font-medium text-center border border-emerald-500 shadow";
-        } else {
-          btn.className = "road-btn bg-slate-800 text-slate-300 p-2 rounded-lg font-medium text-center border border-slate-700 hover:text-white";
-        }
-      });
+      const st = normalizeSite(appState.site);
+      selectedPattern = st.pattern;
+      selectedRoadWidths = Object.assign({}, st.roadWidths);
+      selectedFlag = Object.assign({}, st.flag);
+      if (st.pattern !== 'flag') {
+        siteWidthInput.value = st.width;
+        siteHeightInput.value = st.height;
+      }
+      const setIn = (id, v) => { document.getElementById(id).value = v; };
+      setIn("flagWInput", selectedFlag.w); setIn("flagHInput", selectedFlag.h);
+      setIn("poleWInput", selectedFlag.poleW); setIn("poleXInput", selectedFlag.poleX); setIn("poleHInput", selectedFlag.poleH);
 
       setModuleSelection(appState.gridModule, appState.gridUnitM);
 
@@ -2542,21 +3340,35 @@
       siteModal.classList.remove("hidden");
     }
 
+    // 敷地を配置する既定の位置(道路がキャンバスの外に出ない範囲)
+    function defaultSiteOffset(s) {
+      const m = siteRoadMargins(s);
+      const minX = Math.max(2, m.W), maxX = GRID_COLS - s.width - m.E;
+      const minY = Math.max(2, m.N), maxY = GRID_ROWS - s.height - m.S;
+      return {
+        x: Math.max(minX, Math.min(10, maxX)),
+        y: Math.max(minY, Math.min(Math.floor((GRID_ROWS - s.height) / 2), maxY))
+      };
+    }
+
     function applySiteSettings() {
       saveHistory();
-      const w = parseInt(siteWidthInput.value);
-      const h = parseInt(siteHeightInput.value);
+      const dims = modalSiteDims();
+      const st = appState.site;
 
-      appState.site.width = w;
-      appState.site.height = h;
-      appState.site.roadSide = selectedRoadSide;
-      appState.site.roadWidth = selectedRoadWidth;
+      st.pattern = selectedPattern;
+      st.roadWidths = Object.assign({}, selectedRoadWidths);
+      st.flag = Object.assign({}, selectedFlag);
+      st.width = dims.w;
+      st.height = dims.h;
+      normalizeSite(st);
       appState.gridModule = selectedGridModule;
       appState.gridUnitM = selectedGridUnitM;
 
       // 横位置は左寄せ(低解像度でも右に見切れない)、縦位置は中央に再配置
-      appState.site.offsetX = Math.min(10, Math.max(2, GRID_COLS - w));
-      appState.site.offsetY = Math.max(2, Math.floor((GRID_ROWS - h) / 2));
+      const off = defaultSiteOffset(st);
+      st.offsetX = off.x;
+      st.offsetY = off.y;
 
       siteModal.classList.add("hidden");
       render();
@@ -2589,8 +3401,9 @@
     }
 
     function centerSiteOnCanvas() {
-      const w = parseInt(siteWidthInput.value);
-      const h = parseInt(siteHeightInput.value);
+      const d = modalSiteDims();
+      const w = d.w;
+      const h = d.h;
 
       appState.site.offsetX = Math.max(2, Math.floor((GRID_COLS - w) / 2));
       appState.site.offsetY = Math.max(2, Math.floor((GRID_ROWS - h) / 2));
@@ -2688,6 +3501,7 @@
 
       if (currentDrawMode === 'flow') { renderFlowDraft(); return; }
       if (currentDrawMode === 'fitting') { renderFittingGhost(); return; }
+      if (currentDrawMode === 'equipment') { renderEquipGhost(); return; }
 
       if (currentDrawMode === 'polygon' && polyPoints.length > 0) {
         const ptsStr = polyPoints.map(p => `${p.x * GRID_SIZE},${p.y * GRID_SIZE}`).join(" ");
@@ -2831,10 +3645,64 @@
       return true;
     }
 
+    // --- 設備: ポインタに追随して表示し、クリック(タップ)で配置 ---
+    function equipGhostEq() {
+      const def = EQUIPMENT_TYPES[equipPlaceKey];
+      return { type: equipPlaceKey, widthMm: equipPlaceWidth || def.defaultWidthMm, depthMm: def.defaultDepthMm, rotation: 0 };
+    }
+
+    function computeEquipHover(pos) {
+      const eq = equipGhostEq();
+      const wG = mmToPx(eq.widthMm) / GRID_SIZE, hG = mmToPx(eq.depthMm) / GRID_SIZE;
+      const gx = pos.rawX / GRID_SIZE, gy = pos.rawY / GRID_SIZE;
+      let x = Math.round((gx - wG / 2) * 2) / 2;
+      let y = Math.round((gy - hG / 2) * 2) / 2;
+      x = Math.max(0, Math.min(GRID_COLS - wG, x));
+      y = Math.max(0, Math.min(GRID_ROWS - hG, y));
+      return { x, y };
+    }
+
+    function renderEquipGhost() {
+      if (!equipPlaceKey || !equipHover) return;
+      const def = EQUIPMENT_TYPES[equipPlaceKey];
+      const eq = equipGhostEq();
+      const lw = mmToPx(eq.widthMm), lh = mmToPx(eq.depthMm);
+      const g = document.createElementNS(SVG_NS, "g");
+      g.setAttribute("transform", `translate(${equipHover.x * GRID_SIZE} ${equipHover.y * GRID_SIZE})`);
+      g.setAttribute("opacity", "0.65");
+      g.setAttribute("pointer-events", "none");
+      const art = buildEquipmentArt(eq, def, lw, lh);
+      if (art) g.appendChild(art);
+      const o = document.createElementNS(SVG_NS, "rect");
+      o.setAttribute("width", lw); o.setAttribute("height", lh);
+      o.setAttribute("fill", "none"); o.setAttribute("stroke", "#38bdf8"); o.setAttribute("stroke-dasharray", "4 3");
+      g.appendChild(o);
+      ghostGroup.appendChild(g);
+    }
+
+    function placeEquipFromHover() {
+      if (!equipPlaceKey || !equipHover) return;
+      const def = EQUIPMENT_TYPES[equipPlaceKey];
+      const eq = { id: "eq_" + Date.now(), type: equipPlaceKey, floor: appState.currentFloor,
+        x: equipHover.x, y: equipHover.y, widthMm: equipPlaceWidth || def.defaultWidthMm, depthMm: def.defaultDepthMm, rotation: 0 };
+      if (setbackBlocked(0, equipmentSetbackPenetration(eq))) { notifySetbackBlocked(); return; }
+      saveHistory();
+      appState.equipment.push(eq);
+      appState.selectedEquipmentId = eq.id;
+      appState.selectedRoomId = null;
+      appState.selectedFittingId = null;
+      setDrawMode('none');
+      render();
+      showToast(`${def.name}を配置しました`, def.icon || "🚰");
+    }
+
     // --- 建具: 壁に沿ってドラッグ配置 ---
     function updateFittingPaletteSelection() {
       document.querySelectorAll("#fittingPaletteList [data-fitkey]").forEach(b => {
         b.classList.toggle("fit-selected", currentDrawMode === 'fitting' && b.getAttribute("data-fitkey") === fittingPlaceKey);
+      });
+      document.querySelectorAll("#equipmentPaletteList [data-eqkey]").forEach(b => {
+        b.classList.toggle("fit-selected", currentDrawMode === 'equipment' && b.getAttribute("data-eqkey") === equipPlaceKey);
       });
     }
 
@@ -2950,6 +3818,9 @@
       fittingPlaceKey = (mode === 'fitting' && targetType) ? targetType : null;
       fittingHover = null;
       fittingLock = null;
+      equipPlaceKey = (mode === 'equipment' && targetType) ? targetType.key : null;
+      equipPlaceWidth = (mode === 'equipment' && targetType) ? targetType.widthMm : 0;
+      equipHover = null;
 
       const modeBadge = document.getElementById("modeStatusBadge");
 
@@ -2957,6 +3828,7 @@
         if (mode === 'none') modeBadge.textContent = "通常選択モード";
         else if (mode === 'eraser') modeBadge.textContent = "🧽 消しゴムモード: 削除するマス目をクリック/ドラッグ";
         else if (mode === 'fitting' && fittingPlaceKey) modeBadge.textContent = `🚪 ${FITTING_TYPES[fittingPlaceKey].name}: 壁に沿ってクリック/ドラッグで配置 (Escで解除)`;
+        else if (mode === 'equipment' && equipPlaceKey) modeBadge.textContent = `${EQUIPMENT_TYPES[equipPlaceKey].icon} ${EQUIPMENT_TYPES[equipPlaceKey].name}: クリック(タップ)で配置 (Escで解除)`;
         else if (mode === 'flow' && flowKind) modeBadge.textContent = `🚶 ${FLOW_KINDS[flowKind].name}を作図中: クリックで点を追加(直角に自動補正)`;
         else if (mode === 'paint') {
           const d = paintTargetType ? getPartDefForPaint(paintTargetType) : null;
@@ -3055,7 +3927,7 @@
       }
 
       if (infoText) {
-        infoText.textContent = `指定サイズ: 約 ${formatJyoDisplay(jyo)}畳 (${(jyo * 1.65).toFixed(1)}㎡)`;
+        infoText.textContent = `指定サイズ: 約 ${formatJyoDisplay(jyo)}畳 (${jyoToSqm(jyo).toFixed(1)}㎡)`;
       }
 
       Object.keys(ROOM_TYPES).forEach(key => {
@@ -3111,6 +3983,12 @@
       startPos = pos;
 
       if (tryStartSiteDrag(pos)) return;
+
+      if (currentDrawMode === 'equipment' && equipPlaceKey) {
+        equipHover = computeEquipHover(pos);
+        renderGhost();
+        return;
+      }
 
       if (currentDrawMode === 'fitting' && fittingPlaceKey) {
         fittingLock = null;
@@ -3210,14 +4088,7 @@
           }
 
           if (action === "rotate-fitting") {
-            saveHistory();
-            fit.orientation = fit.orientation === "h" ? "v" : "h";
-            const spanX = fit.orientation === "h" ? fit.widthUnits : 1;
-            const spanY = fit.orientation === "v" ? fit.widthUnits : 1;
-            fit.x = Math.max(0, Math.min(GRID_COLS - spanX, fit.x));
-            fit.y = Math.max(0, Math.min(GRID_ROWS - spanY, fit.y));
-            render();
-            showToast("建具の向きを変更しました", "🔄");
+            rotateFittingById(fittingId);
             return;
           }
 
@@ -3286,10 +4157,23 @@
           }
 
           if (action === "rotate-equipment") {
+            rotateEquipmentById(equipmentId);
+            return;
+          }
+
+          if (action === "mirror-equipment") {
             saveHistory();
-            eq.rotation = ((eq.rotation || 0) + 90) % 360;
+            eq.mirror = !eq.mirror;
             render();
-            showToast("設備パーツを回転しました", "🔄");
+            showToast(`${EQUIPMENT_TYPES[eq.type].name}を左右反転しました`, "⇋");
+            return;
+          }
+
+          if (action === "toggle-sink-size") {
+            saveHistory();
+            eq.widthMm = (eq.widthMm || 1820) >= 2275 ? 1820 : 2730;
+            render();
+            showToast(`シンクを幅${eq.widthMm}mmに変更しました`, "🚰");
             return;
           }
 
@@ -3317,19 +4201,7 @@
         }
 
         if (action === "rotate" && room) {
-          saveHistory();
-          const oldW = room.w;
-          room.w = room.h;
-          room.h = oldW;
-          if (room.cells) {
-            room.cells = room.cells.map(c => {
-              const t = { x: room.x + (c.y - room.y), y: room.y + (c.x - room.x) };
-              if (c.s) t.s = c.s;
-              return t;
-            });
-          }
-          render();
-          showToast("部屋を回転しました", "🔄");
+          rotateRoomById(roomId);
           return;
         }
 
@@ -3443,6 +4315,11 @@
     function onCanvasMouseMove(e) {
       if (dragData && dragData.kind === "site") { onSiteDragMove(getSvgGridPos(e)); return; }
       if (currentDrawMode === 'flow') { onFlowMouseMove(e); return; }
+      if (currentDrawMode === 'equipment' && equipPlaceKey) {
+        equipHover = computeEquipHover(getSvgGridPos(e));
+        renderGhost();
+        return;
+      }
       if (currentDrawMode === 'fitting' && fittingPlaceKey) {
         fittingHover = computeFittingSnap(getSvgGridPos(e));
         renderGhost();
@@ -3676,6 +4553,10 @@
       isMouseDown = false;
       if (dragData && dragData.kind === "site") { dragData = null; render(); return; }
       if (currentDrawMode === 'flow') { onFlowMouseUp(); return; }
+      if (currentDrawMode === 'equipment') {
+        if (wasMouseDown && equipHover) placeEquipFromHover();
+        return;
+      }
       if (currentDrawMode === 'fitting') {
         if (wasMouseDown && fittingHover) placeFittingFromHover();
         fittingLock = null;
@@ -4019,26 +4900,37 @@
 
       Object.keys(EQUIPMENT_TYPES).forEach(key => {
         const eqDef = EQUIPMENT_TYPES[key];
-        const btn = document.createElement("button");
-        btn.className = "p-2 bg-slate-900/80 hover:bg-slate-800 border border-slate-800 hover:border-sky-500 rounded-xl transition flex items-center justify-between text-left group";
+        const hasOpts = Array.isArray(eqDef.widthOptions);
+        const btn = document.createElement(hasOpts ? "div" : "button");
+        if (hasOpts) { btn.setAttribute("role", "button"); btn.setAttribute("tabindex", "0"); }
+        btn.className = "p-2 bg-slate-900/80 hover:bg-slate-800 border border-slate-800 hover:border-sky-500 rounded-xl transition flex items-center justify-between text-left group cursor-pointer";
+        const optSel = hasOpts ? `<select class="eq-width-select text-[10px] bg-slate-800 text-slate-200 border border-slate-600 rounded px-1 py-0.5 ml-1 focus:outline-none cursor-pointer" title="幅">${eqDef.widthOptions.map(w => `<option value="${w}">${w === 1820 ? "1間" : "1.5間"} (${w}mm)</option>`).join("")}</select>` : "";
         btn.innerHTML = `
           <div class="flex items-center gap-2 overflow-hidden">
             <span class="text-base p-1.5 rounded-lg bg-slate-950 border border-slate-800 group-hover:scale-110 transition-transform">${eqDef.icon}</span>
             <div>
               <div class="text-xs font-bold text-slate-200 group-hover:text-sky-400 transition-colors">${eqDef.name}</div>
-              <div class="text-[10px] text-slate-500">奥行 ${eqDef.defaultDepthMm}mm × 幅 ${eqDef.defaultWidthMm}mm ${eqDef.fixedSize ? "(サイズ固定)" : "(寸法指定可)"}</div>
+              <div class="text-[10px] text-slate-500">奥行 ${eqDef.defaultDepthMm}mm × 幅 ${hasOpts ? "選択" : eqDef.defaultWidthMm + "mm"} (配置後に寸法変更可)</div>
             </div>
           </div>
-          <span class="text-sky-400 opacity-0 group-hover:opacity-100 transition-opacity text-xs font-bold mr-1">＋</span>
+          ${optSel || '<span class="text-sky-400 opacity-0 group-hover:opacity-100 transition-opacity text-xs font-bold mr-1">＋</span>'}
         `;
-        btn.onclick = () => {
-          if (eqDef.fixedSize) {
-            saveHistory();
-            placeEquipmentItem(key, eqDef.defaultWidthMm, eqDef.defaultDepthMm);
-            render();
-          } else {
-            openEquipmentSizeModal({ mode: "create", type: key });
+        const sel = btn.querySelector(".eq-width-select");
+        if (sel) ["click", "mousedown", "keydown"].forEach(ev => sel.addEventListener(ev, e => e.stopPropagation()));
+        btn.setAttribute("data-eqkey", key);
+        if (sel) sel.addEventListener("change", () => {
+          if (currentDrawMode === 'equipment' && equipPlaceKey === key) {
+            equipPlaceWidth = parseInt(sel.value, 10) || eqDef.defaultWidthMm;
+            renderGhost();
           }
+          sel.blur();
+        });
+        btn.onclick = () => {
+          if (currentDrawMode === 'equipment' && equipPlaceKey === key) { setDrawMode('none'); return; }
+          const w = sel ? (parseInt(sel.value, 10) || eqDef.defaultWidthMm) : eqDef.defaultWidthMm;
+          appState.selectedEquipmentId = null;
+          setDrawMode('equipment', { key, widthMm: w });
+          showToast(`${eqDef.name}: クリック(タップ)で配置`, eqDef.icon || "🚰");
         };
         container.appendChild(btn);
       });
@@ -4398,7 +5290,7 @@
         appState.fittings = data.fittings || [];
         appState.equipment = data.equipment || [];
         appState.flowLines = data.flowLines || [];
-        if (data.site) appState.site = data.site;
+        if (data.site) appState.site = normalizeSite(data.site);
         appState.selectedRoomId = null;
         appState.selectedFittingId = null;
         appState.selectedEquipmentId = null;
@@ -4433,7 +5325,7 @@
             appState.fittings = data.fittings || [];
             appState.equipment = data.equipment || [];
             appState.flowLines = Array.isArray(data.flowLines) ? data.flowLines : [];
-            if (data.site) appState.site = data.site;
+            if (data.site) appState.site = normalizeSite(data.site);
             // 旧バージョンのJSON(マス目モジュール・複数階対応前)との後方互換性を確保
             appState.gridModule = data.gridModule || 'shaku';
             appState.gridUnitM = typeof data.gridUnitM === 'number' ? data.gridUnitM : 0.91;
@@ -5079,7 +5971,9 @@
     // ============================================================
     function isRectInSite(x, y, size) {
       const st = appState.site;
-      return x >= st.offsetX && x + size <= st.offsetX + st.width && y >= st.offsetY && y + size <= st.offsetY + st.height;
+      if (!(x >= st.offsetX && x + size <= st.offsetX + st.width && y >= st.offsetY && y + size <= st.offsetY + st.height)) return false;
+      // 旗竿地: 隣地部分は敷地ではない
+      return !getSiteGeom().neighbors.some(n => Math.min(x + size, n.x2) - Math.max(x, n.x1) > 1e-6 && Math.min(y + size, n.y2) - Math.max(y, n.y1) > 1e-6);
     }
 
     function isCellInSite(cx, cy) {
@@ -5158,13 +6052,8 @@
       const W = SITE_HANDLE_W, H = SITE_HANDLE_H, gap = 6;
       const x = s.offsetX * GRID_SIZE, y = s.offsetY * GRID_SIZE;
       const w = s.width * GRID_SIZE, h = s.height * GRID_SIZE;
-      const rw = getRoadDrawGrid() * GRID_SIZE;
-
-      let road = null;
-      if (s.roadSide === 'south') road = { x, y: y + h, w, h: rw };
-      else if (s.roadSide === 'north') road = { x, y: y - rw, w, h: rw };
-      else if (s.roadSide === 'east') road = { x: x + w, y, w: rw, h };
-      else if (s.roadSide === 'west') road = { x: x - rw, y, w: rw, h };
+      const bands = getRoadBands(s);
+      const bt = d => { const b = bands.find(q => q.dir === d); return b ? ((d === 'S' || d === 'N') ? b.h : b.w) : 0; };
 
       let compass = null;
       const cg = document.getElementById("compassGroup");
@@ -5183,7 +6072,7 @@
       const hit = (a, b) => a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
       const free = c => {
         const r = { x: c.x, y: c.y, w: W, h: H };
-        return !(road && hit(r, road)) && !(compass && hit(r, compass));
+        return !bands.some(b => hit(r, b)) && !siteDimRects.some(b => hit(r, b)) && !(compass && hit(r, compass));
       };
       const pick = candidates.find(c => inCanvas(c) && free(c)) || candidates.find(inCanvas) || candidates[0];
       return { x: pick.x, y: pick.y, w: W, h: H };
@@ -5214,12 +6103,8 @@
     // 道路側は画面外に出ないよう余白(道路幅2.5マス+α)を確保して移動範囲を制限する
     function clampSiteOffset(x, y) {
       const s = appState.site;
-      const margin = Math.ceil(getRoadDrawGrid() + 0.5);
-      let minX = 0, maxX = GRID_COLS - s.width, minY = 0, maxY = GRID_ROWS - s.height;
-      if (s.roadSide === 'west') minX = margin;
-      if (s.roadSide === 'east') maxX -= margin;
-      if (s.roadSide === 'north') minY = margin;
-      if (s.roadSide === 'south') maxY -= margin;
+      const m = siteRoadMargins(s);
+      const minX = m.W, maxX = GRID_COLS - s.width - m.E, minY = m.N, maxY = GRID_ROWS - s.height - m.S;
       return {
         x: Math.max(minX, Math.min(Math.max(minX, maxX), x)),
         y: Math.max(minY, Math.min(Math.max(minY, maxY), y))
@@ -5821,6 +6706,7 @@
       underlayGroup = document.getElementById("underlayGroup");
       siteGroup = document.getElementById("siteGroup");
       roomsGroup = document.getElementById("roomsGroup");
+      roomLabelsGroup = document.getElementById("roomLabelsGroup");
       fittingsGroup = document.getElementById("fittingsGroup");
       equipmentGroup = document.getElementById("equipmentGroup");
       ghostGroup = document.getElementById("ghostGroup");
@@ -5876,21 +6762,18 @@
       if (siteWidthInput) siteWidthInput.addEventListener("input", updateSiteModalDisplay);
       if (siteHeightInput) siteHeightInput.addEventListener("input", updateSiteModalDisplay);
 
-      document.querySelectorAll(".road-btn").forEach(btn => {
-        btn.addEventListener("click", (e) => {
-          selectedRoadSide = e.currentTarget.getAttribute("data-road");
-          document.querySelectorAll(".road-btn").forEach(b => {
-            b.className = "road-btn bg-slate-800 text-slate-300 p-2 rounded-lg font-medium text-center border border-slate-700 hover:text-white";
-          });
-          e.currentTarget.className = "road-btn bg-emerald-600 text-white p-2 rounded-lg font-medium text-center border border-emerald-500 shadow";
-          updateSiteModalDisplay();
-        });
+      document.querySelectorAll(".pattern-btn").forEach(btn => {
+        btn.addEventListener("click", (e) => selectPatternInModal(e.currentTarget.getAttribute("data-pattern")));
+      });
+      ["flagW", "flagH", "poleW", "poleX", "poleH"].forEach(id => {
+        const el = document.getElementById(id + "Input");
+        if (el) el.addEventListener("input", updateSiteModalDisplay);
       });
 
       document.querySelectorAll(".roadw-btn").forEach(btn => {
         btn.addEventListener("click", (e) => {
-          selectedRoadWidth = parseInt(e.currentTarget.getAttribute("data-roadwidth"), 10) || 6;
-          refreshRoadWidthButtons();
+          const d = e.currentTarget.getAttribute("data-rdir");
+          selectedRoadWidths[d] = parseInt(e.currentTarget.getAttribute("data-roadwidth"), 10) || 6;
           updateSiteModalDisplay();
         });
       });
@@ -6073,6 +6956,7 @@
         const tag = (e.target && e.target.tagName) || "";
         if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
 
+        if (currentDrawMode === 'equipment' && e.key === "Escape") { e.preventDefault(); setDrawMode('none'); return; }
         if (currentDrawMode === 'fitting' && e.key === "Escape") { e.preventDefault(); setDrawMode('none'); return; }
 
         if (currentDrawMode === 'flow') {
@@ -6106,6 +6990,20 @@
 
 
     // --- Mobile / touch support ---
+    // スマホ: 画面下部のパレットタブ。同じタブをもう一度押す/部品を選ぶと閉じる
+    function setMobTab(tab) {
+      const el = document.getElementById("leftAside");
+      if (!el) return;
+      if (tab && el.getAttribute("data-mob-tab") !== tab) el.setAttribute("data-mob-tab", tab);
+      else el.removeAttribute("data-mob-tab");
+      const cur = el.getAttribute("data-mob-tab");
+      document.querySelectorAll("#mobTabBar button").forEach(b => b.classList.toggle("on", b.getAttribute("data-mobtab") === cur));
+    }
+    function updateHeaderHeightVar() {
+      const h = document.querySelector("header");
+      if (h) document.documentElement.style.setProperty("--hdr-h", h.offsetHeight + "px");
+    }
+
     function closeMobileDrawers() {
       ["leftAside", "rightAside"].forEach(id => { const el = document.getElementById(id); if (el) el.classList.remove("mob-open"); });
       const bd = document.getElementById("mobileBackdrop");
@@ -6116,6 +7014,7 @@
       if (!el) return;
       const willOpen = !el.classList.contains("mob-open");
       closeMobileDrawers();
+      setMobTab(null);
       if (willOpen) {
         el.classList.add("mob-open");
         const bd = document.getElementById("mobileBackdrop");
@@ -6126,6 +7025,11 @@
     function initMobileUi() {
       const on = (id, fn) => { const el = document.getElementById(id); if (el) el.addEventListener("click", fn); };
       on("mobLeftBtn", () => toggleMobileDrawer("leftAside"));
+      document.querySelectorAll("#mobTabBar button").forEach(b => b.addEventListener("click", () => {
+        closeMobileDrawers();
+        setMobTab(b.getAttribute("data-mobtab"));
+      }));
+      updateHeaderHeightVar();
       on("mobRightBtn", () => toggleMobileDrawer("rightAside"));
       on("mobSiteBtn", () => { closeMobileDrawers(); openSiteModal(); });
       on("mobScenarioBtn", () => { closeMobileDrawers(); openScenarioModal(); });
@@ -6136,10 +7040,10 @@
       if (left) left.addEventListener("click", (e) => {
         if (!isMobileView()) return;
         if (e.target.closest("select")) return;
-        const btn = e.target.closest("button, [data-fitkey]");
+        const btn = e.target.closest("button, [data-fitkey], [data-eqkey]");
         if (!btn || btn.classList.contains("palette-toggle")) return;
         if (btn.closest("#roomPaletteBody, #exteriorPaletteBody, #fittingPaletteBody, #equipmentPaletteBody")) {
-          setTimeout(closeMobileDrawers, 60);
+          setTimeout(() => { closeMobileDrawers(); setMobTab(null); }, 60);
         }
       });
 
@@ -6147,7 +7051,8 @@
       window.addEventListener("resize", () => {
         clearTimeout(resizeTimer);
         resizeTimer = setTimeout(() => {
-          if (!isMobileView()) closeMobileDrawers();
+          if (!isMobileView()) { closeMobileDrawers(); setMobTab(null); }
+          updateHeaderHeightVar();
           layoutCanvasWrapper();
         }, 120);
       });
