@@ -43,6 +43,15 @@
     body { -webkit-tap-highlight-color: transparent; overscroll-behavior: none; }
     #mobileBackdrop { display: none; }
     #mobTabBar { display: none; }
+    /* ---- PC/タブレット: 左は短い名称のグループ見出しのみ。クリックで右側にパーツ一覧を展開 ---- */
+    .palette-toggle { width: 100%; display: flex; align-items: center; justify-content: space-between; font-size: 13px; font-weight: 700; color: #cbd5e1; background: #0f172a; border: 1px solid #1e293b; border-radius: 8px; padding: 8px 10px; transition: background .15s; }
+    .palette-toggle:hover { background: #1e293b; color: #fff; }
+    .palette-toggle.fly-on { background: #4f46e5; border-color: #818cf8; color: #fff; }
+    @media (min-width: 768px) {
+      #leftScroll [data-sec] { padding-top: 0 !important; border-top: 0 !important; }
+      .fly-body:not(.fly-open) { display: none; }
+      .fly-body.fly-open { position: fixed; z-index: 45; width: 15rem; overflow-y: auto; padding: 10px; background: #020617; border: 1px solid #334155; border-left: 0; border-radius: 0 12px 12px 0; box-shadow: 8px 8px 24px rgba(0,0,0,.55); }
+    }
     @media (max-width: 767px) {
       header { height: 44px !important; padding: 0 6px !important; gap: 4px; overflow-x: auto; scrollbar-width: none; }
       header::-webkit-scrollbar { display: none; }
@@ -159,6 +168,9 @@
       <button id="mobSiteBtn" class="md:hidden bg-emerald-900/60 text-emerald-200 border border-emerald-700/60 rounded-lg px-2 py-1 text-xs">🏞️ 敷地</button>
       <button id="mobScenarioBtn" class="md:hidden bg-slate-800 text-amber-300 border border-slate-700 rounded-lg px-2 py-1 text-xs">✅ シナリオ</button>
       <div class="flex items-center bg-slate-900 border border-slate-700 rounded-lg p-0.5">
+        <button id="modeSelectPointerBtn" class="flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-md transition font-medium text-slate-400 hover:text-white" title="選択: 配置したパーツを選んで移動・回転・変形・削除">
+          <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M5 3l14 7.5-6.2 1.9L9.5 19z"/></svg><span>選択</span>
+        </button>
         <button id="modeSelectPaintBtn" class="flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-md transition font-medium text-slate-400 hover:text-white" title="マス目塗り描き作成">
           <span>🖌️ マス目塗り</span>
         </button>
@@ -191,7 +203,7 @@
   <div class="flex-1 flex overflow-hidden">
     
     <!-- Left Sidebar: Room Palette -->
-    <aside id="leftAside" class="w-72 bg-slate-950 border-r border-slate-800 flex flex-col z-10 shrink-0">
+    <aside id="leftAside" class="w-36 bg-slate-950 border-r border-slate-800 flex flex-col z-30 shrink-0">
       <div id="leftHead" data-sec="setting" class="p-3 border-b border-slate-800 space-y-3">
         <div>
           <div class="text-[11px] font-semibold text-slate-400 mb-1">フロア選択</div>
@@ -219,20 +231,28 @@
       <!-- Room Parts Palette -->
       <div id="leftScroll" class="flex-1 overflow-y-auto custom-scrollbar p-3 space-y-3">
         <div data-sec="room">
-        <button type="button" class="palette-toggle w-full flex items-center justify-between text-xs font-semibold text-slate-400 tracking-wider hover:text-slate-200 transition " data-target="roomPaletteBody" aria-expanded="true"><span>部屋パーツパレット (選んでマス目塗り)</span><span class="palette-chevron transition-transform">▼</span></button>
-        <div id="roomPaletteBody"><div id="roomPaletteList" class="grid grid-cols-1 gap-1.5"></div></div>
+        <button type="button" class="palette-toggle" data-target="roomPaletteBody" aria-expanded="false"><span>部屋</span><span class="palette-chevron">›</span></button>
+        <div id="roomPaletteBody" class="fly-body"><div id="roomPaletteList" class="grid grid-cols-1 gap-1.5"></div>
+          <div class="mt-2 pt-2 border-t border-slate-800/80">
+            <div class="grid grid-cols-2 gap-1.5">
+              <button type="button" id="wallAddBtn" class="flex items-center justify-center gap-1 text-xs px-2 py-2 rounded-lg border border-slate-700 bg-slate-800/70 text-slate-200 hover:bg-slate-700 transition font-medium" title="壁追加: マス目の線上をドラッグして壁を追加">🧱 壁追加</button>
+              <button type="button" id="wallDelBtn" class="flex items-center justify-center gap-1 text-xs px-2 py-2 rounded-lg border border-slate-700 bg-slate-800/70 text-slate-200 hover:bg-slate-700 transition font-medium" title="壁削除: 隣り合う部屋の間の壁をドラッグで削除">✂️ 壁削除</button>
+            </div>
+            <p class="text-[10px] text-slate-500 leading-relaxed mt-1.5">壁追加: マス目の線に沿ってドラッグ。壁削除: 隣り合う部屋の間の壁をなぞると、その範囲だけ消えます(Escで解除)。</p>
+          </div>
+        </div>
         </div>
 
         <!-- Exterior (外構) Parts Palette -->
         <div data-sec="exterior" class="pt-3 border-t border-slate-800/80">
-          <button type="button" class="palette-toggle w-full flex items-center justify-between text-xs font-semibold text-slate-400 tracking-wider hover:text-slate-200 transition mb-1.5" data-target="exteriorPaletteBody" aria-expanded="true"><span>外構パーツパレット (面は選んでマス目塗り)</span><span class="palette-chevron transition-transform">▼</span></button>
-          <div id="exteriorPaletteBody"><div id="exteriorPaletteList" class="grid grid-cols-1 gap-1.5"></div></div>
+          <button type="button" class="palette-toggle" data-target="exteriorPaletteBody" aria-expanded="false"><span>外構</span><span class="palette-chevron">›</span></button>
+          <div id="exteriorPaletteBody" class="fly-body"><div id="exteriorPaletteList" class="grid grid-cols-1 gap-1.5"></div></div>
         </div>
 
         <!-- Fittings (建具) Parts Palette -->
         <div data-sec="fitting" class="pt-3 border-t border-slate-800/80">
-          <button type="button" class="palette-toggle w-full flex items-center justify-between text-xs font-semibold text-slate-400 tracking-wider hover:text-slate-200 transition mb-1.5" data-target="fittingPaletteBody" aria-expanded="true"><span>建具パーツパレット (クリックで配置)</span><span class="palette-chevron transition-transform">▼</span></button>
-          <div id="fittingPaletteBody">
+          <button type="button" class="palette-toggle" data-target="fittingPaletteBody" aria-expanded="false"><span>建具</span><span class="palette-chevron">›</span></button>
+          <div id="fittingPaletteBody" class="fly-body">
             <div id="fittingPaletteList" class="grid grid-cols-1 gap-1.5"></div>
             <p class="text-[10px] text-slate-500 leading-relaxed mt-1.5">
               配置後、選択すると🗑削除に加え、種別ごとの専用ボタン(前後・吊元・開口側・幅調整)が表示されます。各辺の中央の点に近づけると↻が現れ、クリックで90度回転します。
@@ -242,8 +262,8 @@
 
         <!-- Equipment (設備) Parts Palette -->
         <div data-sec="equipment" class="pt-3 border-t border-slate-800/80">
-          <button type="button" class="palette-toggle w-full flex items-center justify-between text-xs font-semibold text-slate-400 tracking-wider hover:text-slate-200 transition mb-1.5" data-target="equipmentPaletteBody" aria-expanded="true"><span>設備パーツパレット (クリックで寸法指定→配置)</span><span class="palette-chevron transition-transform">▼</span></button>
-          <div id="equipmentPaletteBody">
+          <button type="button" class="palette-toggle" data-target="equipmentPaletteBody" aria-expanded="false"><span>設備</span><span class="palette-chevron">›</span></button>
+          <div id="equipmentPaletteBody" class="fly-body">
             <div id="equipmentPaletteList" class="grid grid-cols-1 gap-1.5"></div>
             <p class="text-[10px] text-slate-500 leading-relaxed mt-1.5">
               配置後、選択すると🗑削除・📐寸法編集(mm指定)が行えます。各辺の中央の点にカーソルを近づけると↻が現れ、クリックで90度回転(中心まわり)します。
@@ -253,8 +273,8 @@
 
         <!-- Flow Lines (動線作図) -->
         <div data-sec="flow" class="pt-3 border-t border-slate-800/80">
-          <div class="text-xs font-semibold text-slate-400 mb-2">動線作図</div>
-          <div class="bg-slate-900/80 p-2.5 rounded-lg border border-slate-800 space-y-2">
+          <button type="button" class="palette-toggle" data-target="flowPaletteBody" aria-expanded="false"><span>動線</span><span class="palette-chevron">›</span></button>
+          <div id="flowPaletteBody" class="fly-body"><div class="bg-slate-900/80 p-2.5 rounded-lg border border-slate-800 space-y-2">
             <p class="text-[11px] text-slate-400 leading-relaxed">
               <span class="text-blue-300 font-semibold">生活動線</span>: 寝室から、家事空間・共同空間・玄関へ。<br>
               <span class="text-orange-300 font-semibold">家事動線</span>: 家事空間と共同空間の間。<br>
@@ -270,12 +290,12 @@
             </div>
             <button id="flowClearBtn" type="button" class="w-full bg-slate-800 hover:bg-rose-700 text-slate-300 hover:text-white text-[11px] py-1.5 px-2 rounded-lg font-medium transition border border-slate-700">🧹 この階の動線をクリア</button>
             <p id="flowHint" class="text-[10px] text-slate-500 leading-relaxed">「生活動線」「家事動線」のどちらかを選び、図面上をクリックして描きます。</p>
-          </div>
+          </div></div>
         </div>
       </div>
 
       <div id="leftFoot" class="p-3 border-t border-slate-800 text-[11px] text-slate-500 bg-slate-950/80">
-        操作: ドラッグ移動 / 敷地は✥ボタンで移動 / 角ドラッグでリサイズ / 辺の中央の↻で回転 / ホイールでズーム
+        操作: ドラッグ移動 / 敷地は✥ボタンで移動 / 部屋・外構は角の点/辺のバーをドラッグで変形 / 建具・設備は辺の中央の↻で回転 / ホイールでズーム
       </div>
       <!-- スマホ用: 画面下部のパレット切替タブ -->
       <div id="mobTabBar" role="tablist">
@@ -1074,6 +1094,8 @@
       selectedFittingId: null,
       multiSelectedFittingIds: [],
       equipment: [],
+      extraWalls: [], // 追加した壁(半マス単位の辺キー "階|h/v|線|位置")
+      removedWalls: [], // 削除した壁(隣り合う部屋の間の辺キー)
       flowLines: [], // 動線作図 [{ id, kind: 'life'|'chore', floor, points: [{x,y}] }]
       selectedEquipmentId: null,
       zoomLevel: 1.0, 
@@ -1118,7 +1140,7 @@
 
     // DOM Elements
     let planSvg, underlayGroup, siteGroup, roomsGroup, roomLabelsGroup, fittingsGroup, equipmentGroup, ghostGroup, controlsGroup;
-    let modeSelectPaintBtn, modeSelectEraserBtn;
+    let modeSelectPaintBtn, modeSelectEraserBtn, modeSelectPointerBtn;
     let eraseStrokeSaved = false;
     let sidebarPaintModeBtn;
     let shapeControlsBadge, shapeInfoLabel, shapePointCount, shapeUnitLabel, finishShapeBtn, cancelShapeBtn, eraseToggleBtn;
@@ -1780,6 +1802,7 @@
     // 部屋の外形(0.5マス単位の水平・垂直な折れ線)を、角の頂点列(ループ)として取り出す
     function roomOutlineLoops(room) {
       const half = roomHalfCells(room);
+      const keepSet = new Set((room.keepPts || []).map(q => `${Math.round(q.x * 2)},${Math.round(q.y * 2)}`));
       const out = new Map();
       const addEdge = (x1, y1, x2, y2) => {
         const k = `${x1},${y1}`;
@@ -1812,11 +1835,11 @@
           cands.sort((a, b) => score(a) - score(b));
           e = cands[0];
         }
-        // 一直線上の点を除き、角だけにする
+        // 一直線上の点を除き、角だけにする(辺を動かして他の壁と一直線に並んだ角は、room.keepPts として残す)
         const n = pts.length;
         const corners = pts.filter((q, i) => {
           const pr = pts[(i - 1 + n) % n], nx = pts[(i + 1) % n];
-          return (q.x - pr.x) * (nx.y - q.y) - (q.y - pr.y) * (nx.x - q.x) !== 0;
+          return (q.x - pr.x) * (nx.y - q.y) - (q.y - pr.y) * (nx.x - q.x) !== 0 || keepSet.has(`${q.x},${q.y}`);
         });
         if (corners.length >= 4) loops.push(corners.map(q => ({ x: q.x / 2, y: q.y / 2 })));
       }));
@@ -1929,6 +1952,70 @@
       render();
     }
 
+    // 辺を法線方向へ動かす(辺の両端の角が一緒に動く)。
+    // 端の角が同じ向きの辺(一直線上に並んだ辺)と接している場合は、角を残したまま新しい接続辺を作る。
+    // 他の壁と一直線に並んで長さ0になった辺は、角の点だけを残して取り除く。
+    function deformLoopsEdge(loops, li, ei, t) {
+      const L = loops.map(l => l.map(v => ({ x: v.x, y: v.y })));
+      const loop = L[li], n = loop.length;
+      const a = loop[ei], b = loop[(ei + 1) % n];
+      const horiz = a.y === b.y;
+      const prev = loop[(ei - 1 + n) % n], next = loop[(ei + 2) % n];
+      const par = (u, v) => horiz ? u.y === v.y : u.x === v.x;
+      const prevPar = par(prev, a), nextPar = par(b, next);
+      const ao = { x: a.x, y: a.y }, bo = { x: b.x, y: b.y };
+      const mv = v => { if (horiz) v.y = t; else v.x = t; };
+      const out = [];
+      for (let i = 0; i < n; i++) {
+        if (i === ei) {
+          if (prevPar) out.push({ x: ao.x, y: ao.y });
+          const na = { x: a.x, y: a.y }; mv(na); out.push(na);
+        } else if (i === (ei + 1) % n) {
+          const nb = { x: b.x, y: b.y }; mv(nb); out.push(nb);
+          if (nextPar) out.push({ x: bo.x, y: bo.y });
+        } else out.push(loop[i]);
+      }
+      // 連続する同一点(長さ0の辺)を除く
+      const clean = [];
+      out.forEach(v => { const q = clean[clean.length - 1]; if (!q || q.x !== v.x || q.y !== v.y) clean.push(v); });
+      if (clean.length > 1 && clean[0].x === clean[clean.length - 1].x && clean[0].y === clean[clean.length - 1].y) clean.pop();
+      L[li] = clean;
+      return L;
+    }
+
+    function onRoomEdgeDrag(pos) {
+      const d = dragData;
+      const room = appState.rooms.find(r => r.id === d.roomId);
+      if (!room) return;
+      const loop0 = d.loops[d.li], n0 = loop0.length;
+      const a0 = loop0[d.vi], b0 = loop0[(d.vi + 1) % n0];
+      const horiz = a0.y === b0.y;
+      const delta = Math.round(((horiz ? pos.rawY - d.startY : pos.rawX - d.startX) / GRID_SIZE) * 2) / 2;
+      const t = horiz ? Math.max(0, Math.min(GRID_ROWS, a0.y + delta)) : Math.max(0, Math.min(GRID_COLS, a0.x + delta));
+      if (d.last === t) return;
+      const next = deformLoopsEdge(d.loops, d.li, d.vi, t);
+      if (!loopsValid(next, d.loops)) return;
+      const geomBefore = snapshotRoomGeom(room);
+      const jyoBefore = room.customJyo;
+      const penBefore = roomSetbackPenetration(room);
+      if (!d.changed && t !== (horiz ? a0.y : a0.x)) { saveHistory(); d.changed = true; }
+      if (!applyRoomLoops(room, next)) return;
+      if (setbackBlocked(penBefore, roomSetbackPenetration(room))) {
+        restoreRoomGeom(room, geomBefore);
+        if (jyoBefore !== undefined) room.customJyo = jyoBefore;
+        notifySetbackBlocked();
+        return;
+      }
+      // 動かした辺の両端の角は、他の壁と一直線に並んでも「角の点」として残す
+      const ax = horiz ? a0.x : t, ay = horiz ? t : a0.y, bx = horiz ? b0.x : t, by = horiz ? t : b0.y;
+      // (動かす前の辺の端の点は、もう並びの基準ではないので外す)
+      const isOld = q => (q.x === a0.x && q.y === a0.y) || (q.x === b0.x && q.y === b0.y);
+      room.keepPts = (d.keep || []).filter(q => !isOld(q)).concat([{ x: ax, y: ay }, { x: bx, y: by }]);
+      d.last = t;
+      syncStairsSizeToUpperFloors(room);
+      render();
+    }
+
     function finishRoomCornerDrag() {
       const d = dragData;
       dragData = null;
@@ -1948,6 +2035,7 @@
         () => { carveHalfFromOtherRooms(myHalf, new Set([room.id])); render(); showToast("重なった部分のパーツを消去しました", "🧹"); },
         () => {
           restoreRoomGeom(room, d.geom);
+          if (d.keep) room.keepPts = d.keep;
           if (d.jyo !== undefined) room.customJyo = d.jyo; else delete room.customJyo;
           render(); showToast("変形前の形に戻しました", "↩️");
         });
@@ -2120,8 +2208,32 @@
           outline.setAttribute("pointer-events", "none");
           ctrlG.appendChild(outline);
 
-          // 回転ポイント: 各辺の中央(角のポイントより奥に置き、重なる場合は角を優先)
-          addRotateHandles(ctrlG, room.x * GRID_SIZE - 2, room.y * GRID_SIZE - 2, room.w * GRID_SIZE + 4, room.h * GRID_SIZE + 4, "rotate", "data-room-id", room.id, 0);
+          // 辺のバー: 各辺の中央。ドラッグでその辺を動かし、塗りつぶし範囲を広げる/狭める(0.5マス単位。角のポイントより奥に置く)
+          roomOutlineLoops(room).forEach((loop, li) => {
+            loop.forEach((v, vi) => {
+              const w2 = loop[(vi + 1) % loop.length];
+              const horiz = v.y === w2.y;
+              const mx = (v.x + w2.x) / 2 * GRID_SIZE, my = (v.y + w2.y) / 2 * GRID_SIZE;
+              const eg = document.createElementNS("http://www.w3.org/2000/svg", "g");
+              eg.setAttribute("data-action", "room-edge");
+              eg.setAttribute("data-room-id", room.id);
+              eg.setAttribute("data-loop", li);
+              eg.setAttribute("data-vi", vi);
+              eg.style.cursor = horiz ? "ns-resize" : "ew-resize";
+              const hit = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+              hit.setAttribute("cx", mx); hit.setAttribute("cy", my); hit.setAttribute("r", "10"); hit.setAttribute("fill", "transparent");
+              eg.appendChild(hit);
+              const bw = horiz ? 18 : 7, bh = horiz ? 7 : 18;
+              const bar = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+              bar.setAttribute("x", mx - bw / 2); bar.setAttribute("y", my - bh / 2);
+              bar.setAttribute("width", bw); bar.setAttribute("height", bh); bar.setAttribute("rx", 3);
+              bar.setAttribute("fill", "#f59e0b"); bar.setAttribute("stroke", "#0f172a"); bar.setAttribute("stroke-width", "1.5");
+              bar.setAttribute("pointer-events", "none");
+              eg.appendChild(bar);
+              ctrlG.appendChild(eg);
+            });
+          });
+
 
           // 角のポイント: ドラッグで形を変形(0.5マス単位・辺は常に水平/垂直のまま)
           roomOutlineLoops(room).forEach((loop, li) => {
@@ -2166,23 +2278,21 @@
       // 隣接する部屋どうしの境界の壁は1本に融合する
       if (wallsGroupEl) {
         const wallPx = mmToPx(WALL_THICKNESS_MM);
-        const paths = [];
-        currentRooms.forEach(room => {
-          if (isExteriorType(room.type)) return;
-          roomOutlineLoops(room).forEach(loop => {
-            paths.push(loop.map((v, i) => `${i ? "L" : "M"}${v.x * GRID_SIZE} ${v.y * GRID_SIZE}`).join(" ") + " Z");
-          });
-        });
-        [[WALL_EDGE_COLOR, wallPx + 1.6], [WALL_COLOR, wallPx]].forEach(([col, w]) => {
-          paths.forEach(d => {
-            const wp = document.createElementNS("http://www.w3.org/2000/svg", "path");
-            wp.setAttribute("d", d);
-            wp.setAttribute("fill", "none");
-            wp.setAttribute("stroke", col);
-            wp.setAttribute("stroke-width", w);
-            wp.setAttribute("stroke-linejoin", "miter");
-            wp.setAttribute("pointer-events", "none");
-            wallsGroupEl.appendChild(wp);
+        const segs = wallSegments();
+        const half = wallPx / 2;
+        [[WALL_EDGE_COLOR, wallPx + 1.6, 0.8], [WALL_COLOR, wallPx, 0]].forEach(([col, w, pad]) => {
+          segs.forEach(sg => {
+            const a = sg.a2 / 2 * GRID_SIZE - (sg.extS ? half : 0) - pad;
+            const b = sg.b2 / 2 * GRID_SIZE + (sg.extE ? half : 0) + pad;
+            const L = sg.l2 / 2 * GRID_SIZE;
+            const ln = document.createElementNS("http://www.w3.org/2000/svg", "line");
+            if (sg.o === "h") { ln.setAttribute("x1", a); ln.setAttribute("y1", L); ln.setAttribute("x2", b); ln.setAttribute("y2", L); }
+            else { ln.setAttribute("x1", L); ln.setAttribute("y1", a); ln.setAttribute("x2", L); ln.setAttribute("y2", b); }
+            ln.setAttribute("stroke", col);
+            ln.setAttribute("stroke-width", w);
+            ln.setAttribute("stroke-linecap", "butt");
+            ln.setAttribute("pointer-events", "none");
+            wallsGroupEl.appendChild(ln);
           });
         });
       }
@@ -2235,30 +2345,25 @@
       });
     }
 
-    // 部屋を中心まわりに時計回りへ90°回転。中心を保つため、位置が0.5マスずれる場合は1マスのセルを0.5マス×4に分けて配置する
+    // 部屋を中心まわりに時計回りへ90°回転。マス目の区切りは変えず、位置はマス目(整数/0.5刻み)に合わせる
     function rotateRoomAboutCenter(room) {
       const b = getRoomBBox(room);
       const cx = b.x + b.w / 2, cy = b.y + b.h / 2;
+      const hasHalf = room.cells && room.cells.some(c => cellSizeOf(c) !== 1);
+      const unit = hasHalf ? 0.5 : 1;
+      const snap = v => Math.round(v / unit) * unit;
       const nx0 = cx - b.h / 2, ny0 = cy - b.w / 2;
-      let sx = 0, sy = 0;
-      if (nx0 < 0) sx = -nx0;
-      if (ny0 < 0) sy = -ny0;
+      let sx = snap(nx0) - nx0, sy = snap(ny0) - ny0;
+      if (nx0 + sx < 0) sx += -(nx0 + sx);
+      if (ny0 + sy < 0) sy += -(ny0 + sy);
       const rot = (px, py) => ({ x: cx - (py - cy) + sx, y: cy + (px - cx) + sy });
-      const isInt = v => Math.abs(v - Math.round(v)) < 1e-9;
       if (room.cells) {
-        const out = [];
-        room.cells.forEach(c => {
-          const sz = cellSizeOf(c);
-          const q = rot(c.x, c.y + sz);
-          if (sz === 1 && !(isInt(q.x) && isInt(q.y))) {
-            [0, 0.5].forEach(i => [0, 0.5].forEach(j => out.push({ x: q.x + i, y: q.y + j, s: 0.5 })));
-          } else {
-            const t = { x: q.x, y: q.y };
-            if (c.s) t.s = c.s;
-            out.push(t);
-          }
+        room.cells = room.cells.map(c => {
+          const q = rot(c.x, c.y + cellSizeOf(c));
+          const t = { x: q.x, y: q.y };
+          if (c.s) t.s = c.s;
+          return t;
         });
-        room.cells = out;
       }
       if (room.points) room.points = room.points.map(pt => rot(pt.x, pt.y));
       room.x = nx0 + sx; room.y = ny0 + sy; room.w = b.h; room.h = b.w;
@@ -3499,6 +3604,7 @@
       if (!ghostGroup) return;
       ghostGroup.innerHTML = "";
 
+      if (currentDrawMode === 'wallAdd' || currentDrawMode === 'wallDel') { renderWallGhost(); return; }
       if (currentDrawMode === 'flow') { renderFlowDraft(); return; }
       if (currentDrawMode === 'fitting') { renderFittingGhost(); return; }
       if (currentDrawMode === 'equipment') { renderEquipGhost(); return; }
@@ -3698,6 +3804,9 @@
 
     // --- 建具: 壁に沿ってドラッグ配置 ---
     function updateFittingPaletteSelection() {
+      document.querySelectorAll("#roomPaletteList [data-paintkey], #exteriorPaletteList [data-paintkey]").forEach(b => {
+        b.classList.toggle("fit-selected", currentDrawMode === 'paint' && b.getAttribute("data-paintkey") === paintTargetType);
+      });
       document.querySelectorAll("#fittingPaletteList [data-fitkey]").forEach(b => {
         b.classList.toggle("fit-selected", currentDrawMode === 'fitting' && b.getAttribute("data-fitkey") === fittingPlaceKey);
       });
@@ -3707,9 +3816,16 @@
     }
 
     // 現在の階の部屋から、壁(部屋の外周・部屋同士の境界)になる 0.5マス単位の辺を集める
-    function collectWallEdges() {
+    // ---- 壁データ(半マス=0.5単位の辺) ----
+    // 辺キー: "階|h/v|線(2倍値)|位置(2倍値)"。h=水平な壁(線=y, 位置=x)、v=垂直な壁(線=x, 位置=y)
+    function wallFloorSets() {
+      const f = String(appState.currentFloor) + "|";
+      const pick = arr => new Set((arr || []).filter(k => String(k).startsWith(f)).map(k => String(k).slice(f.length)));
+      return { extra: pick(appState.extraWalls), removed: pick(appState.removedWalls) };
+    }
+    function wallOwnerMap(includeExterior) {
       const owner = new Map();
-      appState.rooms.filter(r => r.floor === appState.currentFloor).forEach(r => {
+      appState.rooms.filter(r => r.floor === appState.currentFloor && (includeExterior || !isExteriorType(r.type))).forEach(r => {
         if (r.cells) {
           cellsToHalfSet(r.cells).forEach(k => owner.set(k, r.id));
         } else {
@@ -3720,15 +3836,163 @@
           }
         }
       });
-      const edges = [];
+      return owner;
+    }
+    // 部屋の輪郭から出る辺。shared=true は両側に別の部屋がある(隣り合う)辺
+    function wallEdgeInfo(includeExterior) {
+      const owner = wallOwnerMap(includeExterior);
+      const m = new Map();
+      const add = (o, l2, a2, shared) => {
+        const k = `${o}|${l2}|${a2}`;
+        const prev = m.get(k);
+        if (prev) { if (shared) prev.shared = true; }
+        else m.set(k, { o, l2, a2, shared });
+      };
       owner.forEach((id, k) => {
         const [i, j] = k.split(",").map(Number);
-        if (owner.get(`${i},${j - 1}`) !== id) edges.push({ o: "h", line: j / 2, a: i / 2 }); // 上辺
-        if (owner.get(`${i},${j + 1}`) !== id) edges.push({ o: "h", line: (j + 1) / 2, a: i / 2 }); // 下辺
-        if (owner.get(`${i - 1},${j}`) !== id) edges.push({ o: "v", line: i / 2, a: j / 2 }); // 左辺
-        if (owner.get(`${i + 1},${j}`) !== id) edges.push({ o: "v", line: (i + 1) / 2, a: j / 2 }); // 右辺
+        const up = owner.get(`${i},${j - 1}`), dn = owner.get(`${i},${j + 1}`);
+        const lf = owner.get(`${i - 1},${j}`), rt = owner.get(`${i + 1},${j}`);
+        if (up !== id) add("h", j, i, up !== undefined);
+        if (dn !== id) add("h", j + 1, i, dn !== undefined);
+        if (lf !== id) add("v", i, j, lf !== undefined);
+        if (rt !== id) add("v", i + 1, j, rt !== undefined);
       });
+      return m;
+    }
+    // 追加・削除を反映した、現在の階の壁辺 Map(key → {o,l2,a2})
+    function effectiveWallMap(includeExterior) {
+      const info = wallEdgeInfo(includeExterior);
+      const { extra, removed } = wallFloorSets();
+      const out = new Map();
+      info.forEach((e, k) => { if (!(e.shared && removed.has(k))) out.set(k, e); });
+      extra.forEach(k => {
+        if (out.has(k)) return;
+        const [o, l2, a2] = k.split("|"); out.set(k, { o, l2: +l2, a2: +a2, shared: false });
+      });
+      return out;
+    }
+    function collectWallEdges() {
+      const edges = [];
+      effectiveWallMap(true).forEach(e => edges.push({ o: e.o, line: e.l2 / 2, a: e.a2 / 2 }));
       return edges;
+    }
+    // 描画用: 連続する辺を1本の線分にまとめる。端点が直交する壁と接していれば壁厚の半分だけ延長して角を埋める
+    function wallSegments() {
+      const map = effectiveWallMap(false);
+      const groups = new Map();
+      const hV = new Set(), vV = new Set(); // 水平壁/垂直壁の端点(半マス座標 "x2,y2")
+      map.forEach(e => {
+        const gk = `${e.o}|${e.l2}`;
+        if (!groups.has(gk)) groups.set(gk, []);
+        groups.get(gk).push(e.a2);
+        if (e.o === "h") { hV.add(`${e.a2},${e.l2}`); hV.add(`${e.a2 + 1},${e.l2}`); }
+        else { vV.add(`${e.l2},${e.a2}`); vV.add(`${e.l2},${e.a2 + 1}`); }
+      });
+      const segs = [];
+      groups.forEach((arr, gk) => {
+        const [o, l2s] = gk.split("|"); const l2 = +l2s;
+        arr.sort((a, b) => a - b);
+        let st = arr[0], prev = arr[0];
+        const flush = (a, b) => {
+          const sK = o === "h" ? `${a},${l2}` : `${l2},${a}`;
+          const eK = o === "h" ? `${b + 1},${l2}` : `${l2},${b + 1}`;
+          const cross = o === "h" ? vV : hV;
+          segs.push({ o, l2, a2: a, b2: b + 1, extS: cross.has(sK), extE: cross.has(eK) });
+        };
+        for (let n = 1; n < arr.length; n++) {
+          if (arr[n] === prev + 1) { prev = arr[n]; continue; }
+          flush(st, prev); st = prev = arr[n];
+        }
+        flush(st, prev);
+      });
+      return segs;
+    }
+
+    // ---- 壁追加/壁削除の操作 ----
+    let wallDrag = null, wallHover = null;
+    function wallSnapPos(e) {
+      const v = getSvgVertexPos(e);
+      const hx = Math.max(0, Math.min(GRID_COLS * 2, Math.round(v.rawX / GRID_SIZE * 2)));
+      const hy = Math.max(0, Math.min(GRID_ROWS * 2, Math.round(v.rawY / GRID_SIZE * 2)));
+      return { x2: hx, y2: hy };
+    }
+    function wallDragRange(d) {
+      // ドラッグ方向の優位な軸に拘束した半マス単位の範囲
+      const dx = d.cx2 - d.x2, dy = d.cy2 - d.y2;
+      if (dx === 0 && dy === 0) return null;
+      if (Math.abs(dx) >= Math.abs(dy)) {
+        const a = Math.min(d.x2, d.cx2), b = Math.max(d.x2, d.cx2);
+        return { o: "h", l2: d.y2, a, b };
+      }
+      const a = Math.min(d.y2, d.cy2), b = Math.max(d.y2, d.cy2);
+      return { o: "v", l2: d.x2, a, b };
+    }
+    // ドラッグ範囲のうち、実際に変更の対象になる辺キー
+    function wallDragTargets(range, mode) {
+      const keys = [];
+      if (!range) return keys;
+      const info = wallEdgeInfo(false);
+      const { extra, removed } = wallFloorSets();
+      for (let a = range.a; a < range.b; a++) {
+        const k = `${range.o}|${range.l2}|${a}`;
+        const e = info.get(k);
+        if (mode === 'wallDel') {
+          if (e && e.shared && !removed.has(k)) keys.push(k);
+          else if (!e && extra.has(k)) keys.push(k);
+        } else {
+          if (e) { if (e.shared && removed.has(k)) keys.push(k); }
+          else if (!extra.has(k)) keys.push(k);
+        }
+      }
+      return keys;
+    }
+    function commitWallDrag() {
+      const d = wallDrag; wallDrag = null;
+      if (!d) return;
+      const mode = currentDrawMode;
+      const keys = wallDragTargets(wallDragRange(d), mode);
+      if (!keys.length) {
+        showToast(mode === 'wallDel' ? "隣り合う部屋の間の壁をなぞってください" : "追加できる壁がありません(マス目の線に沿ってドラッグ)", "⚠️");
+        renderGhost(); return;
+      }
+      saveHistory();
+      const f = appState.currentFloor + "|";
+      const info = wallEdgeInfo(false);
+      keys.forEach(k => {
+        const full = f + k;
+        if (mode === 'wallDel') {
+          if (info.has(k)) { if (!appState.removedWalls.includes(full)) appState.removedWalls.push(full); }
+          else appState.extraWalls = appState.extraWalls.filter(x => x !== full);
+        } else {
+          if (info.has(k)) appState.removedWalls = appState.removedWalls.filter(x => x !== full);
+          else if (!appState.extraWalls.includes(full)) appState.extraWalls.push(full);
+        }
+      });
+      render(); renderGhost();
+      showToast(mode === 'wallDel' ? `壁を削除しました(${keys.length / 2}マス分)` : `壁を追加しました(${keys.length / 2}マス分)`, mode === 'wallDel' ? "✂️" : "🧱");
+    }
+    function renderWallGhost() {
+      const del = currentDrawMode === 'wallDel';
+      const col = del ? "#f43f5e" : "#34d399";
+      const mk = (tag, attrs) => { const n = document.createElementNS(SVG_NS, tag); Object.keys(attrs).forEach(k => n.setAttribute(k, attrs[k])); ghostGroup.appendChild(n); return n; };
+      if (wallDrag) {
+        const r = wallDragRange(wallDrag);
+        if (r) {
+          // 範囲の目安(細い点線)
+          const x1 = (r.o === "h" ? r.a : r.l2) / 2 * GRID_SIZE, y1 = (r.o === "h" ? r.l2 : r.a) / 2 * GRID_SIZE;
+          const x2 = (r.o === "h" ? r.b : r.l2) / 2 * GRID_SIZE, y2 = (r.o === "h" ? r.l2 : r.b) / 2 * GRID_SIZE;
+          mk("line", { x1, y1, x2, y2, stroke: col, "stroke-width": 1.5, "stroke-dasharray": "4 3", opacity: 0.8 });
+          // 実際に変更される辺
+          wallDragTargets(r, currentDrawMode).forEach(k => {
+            const [o, l2, a2] = k.split("|"); const L = +l2 / 2 * GRID_SIZE, A = +a2 / 2 * GRID_SIZE, B = (+a2 + 1) / 2 * GRID_SIZE;
+            mk("line", o === "h" ? { x1: A, y1: L, x2: B, y2: L } : { x1: L, y1: A, x2: L, y2: B },
+              { stroke: col, "stroke-width": 7, "stroke-linecap": "butt", opacity: 0.7 });
+          });
+        }
+        mk("circle", { cx: wallDrag.x2 / 2 * GRID_SIZE, cy: wallDrag.y2 / 2 * GRID_SIZE, r: 4, fill: col });
+      } else if (wallHover) {
+        mk("circle", { cx: wallHover.x2 / 2 * GRID_SIZE, cy: wallHover.y2 / 2 * GRID_SIZE, r: 5, fill: col, opacity: 0.8 });
+      }
     }
 
     function computeFittingSnap(pos) {
@@ -3818,6 +4082,7 @@
       fittingPlaceKey = (mode === 'fitting' && targetType) ? targetType : null;
       fittingHover = null;
       fittingLock = null;
+      wallDrag = null; wallHover = null;
       equipPlaceKey = (mode === 'equipment' && targetType) ? targetType.key : null;
       equipPlaceWidth = (mode === 'equipment' && targetType) ? targetType.widthMm : 0;
       equipHover = null;
@@ -3826,6 +4091,8 @@
 
       if (modeBadge) {
         if (mode === 'none') modeBadge.textContent = "通常選択モード";
+        else if (mode === 'wallAdd') modeBadge.textContent = "🧱 壁追加: マス目の線に沿ってドラッグ (Escで解除)";
+        else if (mode === 'wallDel') modeBadge.textContent = "✂️ 壁削除: 隣り合う部屋の間の壁をなぞって削除 (Escで解除)";
         else if (mode === 'eraser') modeBadge.textContent = "🧽 消しゴムモード: 削除するマス目をクリック/ドラッグ";
         else if (mode === 'fitting' && fittingPlaceKey) modeBadge.textContent = `🚪 ${FITTING_TYPES[fittingPlaceKey].name}: 壁に沿ってクリック/ドラッグで配置 (Escで解除)`;
         else if (mode === 'equipment' && equipPlaceKey) modeBadge.textContent = `${EQUIPMENT_TYPES[equipPlaceKey].icon} ${EQUIPMENT_TYPES[equipPlaceKey].name}: クリック(タップ)で配置 (Escで解除)`;
@@ -3845,13 +4112,18 @@
         }
       }
 
-      [modeSelectPaintBtn, modeSelectEraserBtn].forEach(btn => {
+      [modeSelectPaintBtn, modeSelectEraserBtn, modeSelectPointerBtn].forEach(btn => {
         if (btn) btn.className = "flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-md transition font-medium text-slate-400 hover:text-white";
       });
 
+      // 現在の操作に対応するボタンの色を変える(選択=緑/塗り=青紫/消しゴム=赤。パーツ配置中はパレット側のボタンが黄色になる)
+      if (mode === 'none' && modeSelectPointerBtn) modeSelectPointerBtn.className = "flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-md transition font-medium bg-emerald-600 text-white";
       if (mode === 'eraser' && modeSelectEraserBtn) modeSelectEraserBtn.className = "flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-md transition font-medium bg-rose-600 text-white";
       if (mode === 'paint' && modeSelectPaintBtn) modeSelectPaintBtn.className = "flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-md transition font-medium bg-indigo-600 text-white";
 
+      const wab = document.getElementById("wallAddBtn"), wdb = document.getElementById("wallDelBtn");
+      if (wab) wab.classList.toggle("fit-selected", mode === 'wallAdd');
+      if (wdb) wdb.classList.toggle("fit-selected", mode === 'wallDel');
       if (finishShapeBtn) finishShapeBtn.textContent = paintTargetType ? "✓ 塗った範囲で配置" : "✓ 塗った範囲を確定して室を選択";
       updateEraseToggleUI();
       updateFlowButtons();
@@ -3983,6 +4255,13 @@
       startPos = pos;
 
       if (tryStartSiteDrag(pos)) return;
+
+      if (currentDrawMode === 'wallAdd' || currentDrawMode === 'wallDel') {
+        const sp = wallSnapPos(e);
+        wallDrag = { x2: sp.x2, y2: sp.y2, cx2: sp.x2, cy2: sp.y2 };
+        renderGhost();
+        return;
+      }
 
       if (currentDrawMode === 'equipment' && equipPlaceKey) {
         equipHover = computeEquipHover(pos);
@@ -4205,6 +4484,15 @@
           return;
         }
 
+        if (action === "room-edge" && room) {
+          const loops = roomOutlineLoops(room);
+          const li = parseInt(actionG.getAttribute("data-loop")), vi = parseInt(actionG.getAttribute("data-vi"));
+          if (loops[li] && loops[li][vi]) {
+            dragData = { type: "room-edge", roomId, loops, li, vi, startX: pos.rawX, startY: pos.rawY, geom: snapshotRoomGeom(room), jyo: room.customJyo, keep: (room.keepPts || []).map(q => ({ x: q.x, y: q.y })), changed: false, last: null };
+          }
+          return;
+        }
+
         if (action === "room-corner" && room) {
           const loops = roomOutlineLoops(room);
           const li = parseInt(actionG.getAttribute("data-loop")), vi = parseInt(actionG.getAttribute("data-vi"));
@@ -4325,10 +4613,17 @@
         renderGhost();
         return;
       }
+      if (currentDrawMode === 'wallAdd' || currentDrawMode === 'wallDel') {
+        const sp = wallSnapPos(e);
+        if (wallDrag) { wallDrag.cx2 = sp.x2; wallDrag.cy2 = sp.y2; } else wallHover = sp;
+        renderGhost();
+        return;
+      }
       if (!isMouseDown && currentDrawMode !== 'paint') return;
       const pos = getSvgGridPos(e);
 
       if (dragData && dragData.type === "room-corner") { onRoomCornerDrag(pos); return; }
+      if (dragData && dragData.type === "room-edge") { onRoomEdgeDrag(pos); return; }
 
       if (dragData && dragData.kind === "polyPoint") {
         const vpos = getSvgVertexPos(e);
@@ -4552,6 +4847,7 @@
       const wasMouseDown = isMouseDown;
       isMouseDown = false;
       if (dragData && dragData.kind === "site") { dragData = null; render(); return; }
+      if (currentDrawMode === 'wallAdd' || currentDrawMode === 'wallDel') { if (wasMouseDown) commitWallDrag(); return; }
       if (currentDrawMode === 'flow') { onFlowMouseUp(); return; }
       if (currentDrawMode === 'equipment') {
         if (wasMouseDown && equipHover) placeEquipFromHover();
@@ -4645,6 +4941,7 @@
       }
 
       if (dragData && dragData.type === "room-corner") { finishRoomCornerDrag(); return; }
+      if (dragData && dragData.type === "room-edge") { finishRoomCornerDrag(); return; }
 
       if (dragData && (dragData.type === "move" || dragData.kind === "move-multi")) {
         const drag = dragData;
@@ -4766,6 +5063,7 @@
           </div>
           <span class="text-indigo-400 opacity-0 group-hover:opacity-100 transition-opacity text-xs font-bold mr-1">🖌️</span>
         `;
+        btn.setAttribute("data-paintkey", key);
         btn.onclick = () => startPaintForType(key);
         container.appendChild(btn);
       });
@@ -4789,6 +5087,7 @@
           </div>
           <span class="text-emerald-400 opacity-0 group-hover:opacity-100 transition-opacity text-xs font-bold mr-1">🖌️</span>
         `;
+        btn.setAttribute("data-paintkey", key);
         btn.onclick = () => startPaintForType(key);
         if (key === "GARDEN") {
           // 庭だけ「＋」ボタンを添える: 押すと残りの敷地すべてに庭を配置する
@@ -5099,6 +5398,9 @@
       appState.rooms = appState.rooms.filter(r => r.floor < floorNum);
       appState.fittings = appState.fittings.filter(f => f.floor < floorNum);
       appState.flowLines = (appState.flowLines || []).filter(l => l.floor < floorNum);
+      const wallFloorOk = k => Number(String(k).split("|")[0]) < floorNum;
+      appState.extraWalls = (appState.extraWalls || []).filter(wallFloorOk);
+      appState.removedWalls = (appState.removedWalls || []).filter(wallFloorOk);
       flowDraft = null;
       appState.maxFloor = floorNum - 1;
       if (appState.currentFloor >= floorNum) {
@@ -5272,6 +5574,8 @@
         fittings: appState.fittings,
         flowLines: appState.flowLines,
         equipment: appState.equipment,
+        extraWalls: appState.extraWalls,
+        removedWalls: appState.removedWalls,
         site: appState.site
       });
       appState.history.push(snapshot);
@@ -5290,6 +5594,8 @@
         appState.fittings = data.fittings || [];
         appState.equipment = data.equipment || [];
         appState.flowLines = data.flowLines || [];
+        appState.extraWalls = data.extraWalls || [];
+        appState.removedWalls = data.removedWalls || [];
         if (data.site) appState.site = normalizeSite(data.site);
         appState.selectedRoomId = null;
         appState.selectedFittingId = null;
@@ -5325,6 +5631,8 @@
             appState.fittings = data.fittings || [];
             appState.equipment = data.equipment || [];
             appState.flowLines = Array.isArray(data.flowLines) ? data.flowLines : [];
+            appState.extraWalls = Array.isArray(data.extraWalls) ? data.extraWalls : [];
+            appState.removedWalls = Array.isArray(data.removedWalls) ? data.removedWalls : [];
             if (data.site) appState.site = normalizeSite(data.site);
             // 旧バージョンのJSON(マス目モジュール・複数階対応前)との後方互換性を確保
             appState.gridModule = data.gridModule || 'shaku';
@@ -6714,6 +7022,8 @@
 
       modeSelectPaintBtn = document.getElementById("modeSelectPaintBtn");
       modeSelectEraserBtn = document.getElementById("modeSelectEraserBtn");
+      modeSelectPointerBtn = document.getElementById("modeSelectPointerBtn");
+      if (modeSelectPointerBtn) modeSelectPointerBtn.className = "flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-md transition font-medium bg-emerald-600 text-white";
       sidebarPaintModeBtn = document.getElementById("sidebarPaintModeBtn");
 
       shapeControlsBadge = document.getElementById("shapeControlsBadge");
@@ -6724,17 +7034,42 @@
       cancelShapeBtn = document.getElementById("cancelShapeBtn");
       eraseToggleBtn = document.getElementById("eraseToggleBtn");
 
-      // パーツパレットの折り畳み/展開
+      // パーツパレット: PCでは右側にフライアウト展開(同時に1つ)。スマホは従来のタブ表示
+      const closeFlyouts = () => {
+        document.querySelectorAll(".fly-body.fly-open").forEach(b => b.classList.remove("fly-open"));
+        document.querySelectorAll(".palette-toggle").forEach(t => { t.classList.remove("fly-on"); t.setAttribute("aria-expanded", "false"); });
+      };
+      window.closeFlyouts = closeFlyouts;
       document.querySelectorAll(".palette-toggle").forEach(btn => {
-        btn.addEventListener("click", () => {
+        btn.addEventListener("click", (ev) => {
+          ev.stopPropagation();
+          if (isMobileView()) return;
           const body = document.getElementById(btn.getAttribute("data-target"));
           if (!body) return;
-          const collapsed = body.classList.toggle("hidden");
-          btn.setAttribute("aria-expanded", collapsed ? "false" : "true");
-          const chev = btn.querySelector(".palette-chevron");
-          if (chev) chev.style.transform = collapsed ? "rotate(-90deg)" : "";
+          const wasOpen = body.classList.contains("fly-open");
+          closeFlyouts();
+          if (wasOpen) return;
+          const aside = document.getElementById("leftAside");
+          const ar = aside.getBoundingClientRect(), br = btn.getBoundingClientRect();
+          body.classList.add("fly-open");
+          btn.classList.add("fly-on"); btn.setAttribute("aria-expanded", "true");
+          const maxH = window.innerHeight - 70;
+          body.style.left = ar.right + "px";
+          body.style.maxHeight = maxH + "px";
+          const h = Math.min(body.scrollHeight, maxH);
+          body.style.top = Math.max(60, Math.min(br.top, window.innerHeight - h - 8)) + "px";
         });
       });
+      // 一覧のボタン(パーツ選択)を押したら閉じてキャンバスを見やすくする。外側クリック/Escでも閉じる
+      document.querySelectorAll(".fly-body").forEach(body => body.addEventListener("click", (e) => {
+        if (isMobileView() || e.target.closest("select, input, label")) return;
+        if (e.target.closest("button, [role=button], [data-fitkey], [data-eqkey], [data-paintkey]")) setTimeout(closeFlyouts, 0);
+      }));
+      document.addEventListener("mousedown", (e) => {
+        if (e.target.closest(".fly-body, .palette-toggle")) return;
+        closeFlyouts();
+      });
+      window.addEventListener("keydown", (e) => { if (e.key === "Escape") closeFlyouts(); }, true);
 
       roomTypeSelectModal = document.getElementById("roomTypeSelectModal");
       pendingBoxInfoText = document.getElementById("pendingBoxInfoText");
@@ -6842,7 +7177,18 @@
       if (applyEquipmentSizeBtn) applyEquipmentSizeBtn.addEventListener("click", applyEquipmentSizeModal);
 
 
+      if (modeSelectPointerBtn) modeSelectPointerBtn.addEventListener("click", () => { setDrawMode('none'); showToast("選択モード: 配置したパーツをクリックして操作できます", "👆"); });
       if (modeSelectPaintBtn) modeSelectPaintBtn.addEventListener("click", () => setDrawMode(currentDrawMode === 'paint' ? 'none' : 'paint'));
+      const enterWallMode = (m) => {
+        if (currentDrawMode === m) { setDrawMode('none'); return; }
+        appState.selectedRoomId = null; appState.multiSelectedRoomIds = [];
+        appState.selectedFittingId = null; appState.selectedEquipmentId = null;
+        setDrawMode(m); render(); renderGhost();
+        showToast(m === 'wallAdd' ? "壁追加: マス目の線に沿ってドラッグ" : "壁削除: 隣り合う部屋の間の壁をなぞってドラッグ", m === 'wallAdd' ? "🧱" : "✂️");
+      };
+      const wallAddBtnEl = document.getElementById("wallAddBtn"), wallDelBtnEl = document.getElementById("wallDelBtn");
+      if (wallAddBtnEl) wallAddBtnEl.addEventListener("click", () => enterWallMode('wallAdd'));
+      if (wallDelBtnEl) wallDelBtnEl.addEventListener("click", () => enterWallMode('wallDel'));
       if (modeSelectEraserBtn) modeSelectEraserBtn.addEventListener("click", () => setDrawMode(currentDrawMode === 'eraser' ? 'none' : 'eraser'));
 
       if (sidebarPaintModeBtn) sidebarPaintModeBtn.addEventListener("click", () => setDrawMode('paint'));
@@ -6956,6 +7302,7 @@
         const tag = (e.target && e.target.tagName) || "";
         if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
 
+        if ((currentDrawMode === 'wallAdd' || currentDrawMode === 'wallDel') && e.key === "Escape") { e.preventDefault(); setDrawMode('none'); return; }
         if (currentDrawMode === 'equipment' && e.key === "Escape") { e.preventDefault(); setDrawMode('none'); return; }
         if (currentDrawMode === 'fitting' && e.key === "Escape") { e.preventDefault(); setDrawMode('none'); return; }
 
