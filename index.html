@@ -77,7 +77,25 @@
       #subToolbar #zoomResetBtn { height: 24px !important; font-size: 10px !important; padding: 0 6px !important; }
       #shapeControlsBadge { padding: 2px 6px !important; gap: 4px !important; font-size: 10px !important; }
       #shapeControlsBadge button { font-size: 10px !important; padding: 2px 6px !important; }
-      #canvasContainer { padding: 6px !important; }
+      #canvasContainer { padding: 6px !important; overflow-y: scroll !important; }
+      /* 縦スクロールバーを常時表示(拡大縮小の範囲に関わらず) */
+      #canvasContainer::-webkit-scrollbar { width: 12px; height: 8px; }
+      #canvasContainer::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.9); }
+      #canvasContainer::-webkit-scrollbar-thumb { background: rgba(129, 140, 248, 0.85); border-radius: 6px; border: 2px solid rgba(15, 23, 42, 0.9); }
+      #canvasContainer { scrollbar-width: auto; scrollbar-color: rgba(129, 140, 248, 0.85) rgba(15, 23, 42, 0.9); }
+      /* 上部表示を圧縮して図面の領域を広く */
+      #subToolbar { flex-wrap: nowrap !important; padding: 2px 6px !important; }
+      #subToolbar > div { gap: 6px !important; flex-wrap: nowrap !important; }
+      #subToolbar #modeStatusBadge, #subToolbar > div:first-child > span.text-slate-700 { display: none !important; }
+      #subToolbar #canvasFloorLabel { font-size: 11px !important; white-space: nowrap; }
+      #subToolbar #zoomResetBtn { display: none !important; }
+      header { row-gap: 2px !important; padding: 2px 4px !important; }
+      header button, header label, header select { font-size: 10px !important; padding: 4px 6px !important; }
+      header #undoBtn { padding: 4px !important; }
+      header .w-px { display: none !important; }
+      #modeSelectPointerBtn { margin: 0; }
+      header > div:last-child > div.rounded-lg.p-0\.5 { order: 5; }
+      header .gap-2, header .gap-1 { gap: 3px !important; }
       #rightAside .text-sm { font-size: 12px; }
 
       /* ---- スマホ: ヘッダーを2段にして全ボタンを見える位置へ ---- */
@@ -266,7 +284,7 @@
           <div id="equipmentPaletteBody" class="fly-body">
             <div id="equipmentPaletteList" class="grid grid-cols-1 gap-1.5"></div>
             <p class="text-[10px] text-slate-500 leading-relaxed mt-1.5">
-              配置後、選択すると🗑削除・📐寸法編集(mm指定)が行えます。各辺の中央の点にカーソルを近づけると↻が現れ、クリックで90度回転(中心まわり)します。
+              配置後、選択すると🗑削除・📐寸法編集(mm指定)が行えます。上辺中央の点にカーソルを近づけると↻が現れ、クリックで90度回転(中心まわり)します。
             </p>
           </div>
         </div>
@@ -2307,13 +2325,13 @@
     // --- FITTINGS (建具) RENDERING ---
 
     // --- 回転ポイント: パーツの各辺の中央に表示。カーソルを近づけると「↻」が現れ、クリックで90°回転(パーツ中心まわり) ---
-    function addRotateHandles(parent, bx, by, bw, bh, action, idAttr, id, out) {
+    function addRotateHandles(parent, bx, by, bw, bh, action, idAttr, id, out, single) {
       const o = out || 0;
       const pts = [
         [bx + bw / 2, by - o], [bx + bw / 2, by + bh + o],
         [bx - o, by + bh / 2], [bx + bw + o, by + bh / 2]
       ];
-      pts.forEach(([cx, cy]) => {
+      (single ? pts.slice(0, 1) : pts).forEach(([cx, cy]) => {
         const g = document.createElementNS(SVG_NS, "g");
         g.setAttribute("class", "rot-handle");
         g.setAttribute("data-action", action);
@@ -3125,7 +3143,7 @@
       outline.setAttribute("pointer-events", "none");
       controlsGroup.appendChild(outline);
 
-      addRotateHandles(controlsGroup, box.x - pad, box.y - pad, box.w + pad * 2, box.h + pad * 2, "rotate-equipment", "data-equipment-id", eq.id, 0);
+      addRotateHandles(controlsGroup, box.x - pad, box.y - pad, box.w + pad * 2, box.h + pad * 2, "rotate-equipment", "data-equipment-id", eq.id, 0, true);
 
       const topY = box.y - pad - 30; // 回転ポイントと重ならない高さ
       let ix = box.x - pad;
@@ -3825,7 +3843,7 @@
     }
     function wallOwnerMap(includeExterior) {
       const owner = new Map();
-      appState.rooms.filter(r => r.floor === appState.currentFloor && (includeExterior || !isExteriorType(r.type))).forEach(r => {
+      appState.rooms.filter(r => r.floor === appState.currentFloor && (includeExterior || (!isExteriorType(r.type) && r.type !== "PORCH"))).forEach(r => {
         if (r.cells) {
           cellsToHalfSet(r.cells).forEach(k => owner.set(k, r.id));
         } else {
@@ -4104,7 +4122,8 @@
       }
 
       if (shapeControlsBadge) {
-        if (mode === 'paint') {
+        // パレットでパーツを選んだ塗りは、離した時点で自動配置されるため「塗ったマス」「塗った範囲で配置」は出さない
+        if (mode === 'paint' && !paintTargetType) {
           shapeControlsBadge.classList.remove("hidden");
           updateShapeCountDisplay();
         } else {
