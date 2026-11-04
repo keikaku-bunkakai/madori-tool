@@ -273,7 +273,7 @@
           <div id="fittingPaletteBody" class="fly-body">
             <div id="fittingPaletteList" class="grid grid-cols-1 gap-1.5"></div>
             <p class="text-[10px] text-slate-500 leading-relaxed mt-1.5">
-              配置後、選択すると🗑削除に加え、種別ごとの専用ボタン(前後・吊元・開口側・幅調整)が表示されます。各辺の中央の点に近づけると↻が現れ、クリックで90度回転します。
+              配置後、選択すると🗑削除に加え、種別ごとの専用ボタン(前後・吊元・開口側・幅調整)が表示されます。上辺中央の点に近づけると↻が現れ、クリックで90度回転します。
             </p>
           </div>
         </div>
@@ -922,9 +922,9 @@
     const EQUIPMENT_TYPES = {
       SINK: { name: "シンク", icon: "🚰", color: "#ffffff", border: "#94a3b8", defaultDepthMm: 650, defaultWidthMm: 1820, widthOptions: [1820, 2730] },
       // fixedSize: true は寸法を変更できない固定サイズのパーツ / compact: true は小さなパーツ向けの表示(文字を省略)
-      TOILET_BOWL: { name: "洋式便器", icon: "🚽", color: "#e2e8f0", border: "#64748b", defaultDepthMm: 700, defaultWidthMm: 400, compact: true },
-      WASHBASIN: { name: "洗面台", icon: "🧼", color: "#5eead4", border: "#0f766e", defaultDepthMm: 650, defaultWidthMm: 780, compact: true },
-      UNIT_BATH: { name: "ユニットバス", icon: "🛁", color: "#a5b4fc", border: "#4338ca", defaultDepthMm: 1820, defaultWidthMm: 1820, compact: true }
+      TOILET_BOWL: { name: "洋式便器", icon: "🚽", color: "#ffffff", border: "#94a3b8", defaultDepthMm: 700, defaultWidthMm: 400, compact: true },
+      WASHBASIN: { name: "洗面台", icon: "🧼", color: "#ffffff", border: "#94a3b8", defaultDepthMm: 650, defaultWidthMm: 780, compact: true },
+      UNIT_BATH: { name: "ユニットバス", icon: "🛁", color: "#ffffff", border: "#94a3b8", defaultDepthMm: 1820, defaultWidthMm: 1820, compact: true }
     };
 
     // 門扉・塀: 面ではなく境界線として扱うため、部屋パーツ(面)ではなく建具パーツと同じ
@@ -2423,6 +2423,8 @@
         }
       } else if (fit.orientation === "h") { nx = fit.x + n / 2; ny = fit.y - n / 2; fit.orientation = "v"; }
       else { nx = fit.x - n / 2; ny = fit.y + n / 2; fit.orientation = "h"; }
+      // 折れ戸: 時計回りに 上→右→下→左 と4方向へ向くよう、横→縦の回転ごとに表裏を反転する
+      if (fit.type === "BIFOLD" && prev.o === "h") fit.swingSide = fit.swingSide === "back" ? "front" : "back";
       const spanX = fit.orientation === "h" ? n : 0, spanY = fit.orientation === "v" ? n : 0;
       fit.x = Math.max(0, Math.min(GRID_COLS - spanX, Math.round(nx)));
       fit.y = Math.max(0, Math.min(GRID_ROWS - spanY, Math.round(ny)));
@@ -2596,28 +2598,23 @@
       // 召し合わせ部の記号
       const tickLen = mmToPx(WALL_THICKNESS_MM);
       if (fit.type === "FLOOR_WINDOW") {
-        // 掃き出し窓: 中心に小さな枠、壁の両側へ突き出す縦線と切断(矢印)記号 → 腰窓の引違いと区別
+        // 掃き出し窓: 召し合わせ位置に壁の両側へ突き出す縦線を引き、その両端から内側へ短い斜線(▽/△の切り込み)を付ける
         const wallPx = mmToPx(WALL_THICKNESS_MM);
         const E = wallPx / 2 + 7;
+        const dx = E * 2 * 0.07, dy = E * 2 * 0.29;
         const line = (a, b) => {
           const l = document.createElementNS(SVG_NS, "line");
           l.setAttribute("x1", a.x); l.setAttribute("y1", a.y); l.setAttribute("x2", b.x); l.setAttribute("y2", b.y);
-          l.setAttribute("stroke", FITTING_COLOR); l.setAttribute("stroke-width", "1");
+          l.setAttribute("stroke", FITTING_COLOR); l.setAttribute("stroke-width", "1.2");
           g.appendChild(l);
         };
         const P = (m, d, u) => ({ x: m.x + dir.x * d + perp.x * u, y: m.y + dir.y * d + perp.y * u });
         for (let k = 1; k < n; k++) {
           const m = at(k * seg, 0);
+          const sg = (k - 1) % 2 === 0 ? 1 : -1; // 左側の戸が手前(上)なら1、奥なら反転
           line(P(m, 0, -E), P(m, 0, E));
-          line(P(m, -3, E - 3), P(m, 3, E + 1));
-          line(P(m, 3, -E + 3), P(m, -3, -E - 1));
-          const hs = wallPx * 0.8;
-          const box = document.createElementNS(SVG_NS, "rect");
-          const c0 = P(m, -hs, -hs), c1 = P(m, hs, hs);
-          box.setAttribute("x", Math.min(c0.x, c1.x)); box.setAttribute("y", Math.min(c0.y, c1.y));
-          box.setAttribute("width", Math.abs(c1.x - c0.x)); box.setAttribute("height", Math.abs(c1.y - c0.y));
-          box.setAttribute("fill", "#0f172a"); box.setAttribute("stroke", FITTING_COLOR); box.setAttribute("stroke-width", "1");
-          g.appendChild(box);
+          line(P(m, 0, -E * sg), P(m, dx, (-E + dy) * sg));
+          line(P(m, -dx, (E - dy) * sg), P(m, 0, E * sg));
         }
       }
       for (let k = 1; k < n && fit.type !== "FLOOR_WINDOW"; k++) {
@@ -2642,7 +2639,8 @@
 
       const leafCount = fit.leafCount === 1 ? 1 : 2;
       const dir = ep.horizontal ? { x: 1, y: 0 } : { x: 0, y: 1 };
-      const perp = ep.horizontal ? { x: 0, y: -1 } : { x: -1, y: 0 };
+      const bfSign = fit.swingSide === "back" ? -1 : 1; // 回転で上下左右の4方向に向く
+      const perp = ep.horizontal ? { x: 0, y: -bfSign } : { x: -bfSign, y: 0 };
       const leafLen = 0.5 * GRID_SIZE; // 扉(^)1枚あたりの固定幅(0.5マス)
       const halfLeaf = leafLen / 2;
       // 底辺からの角度を60度にすることで、頂点(折れ角)が60度の鋭角になる
@@ -2905,7 +2903,7 @@
         addBtn((fit.leafCount === 1 ? 1 : 2) + "枚", "toggle-leaf-count", "#22c55e");
       }
 
-      addRotateHandles(controlsGroup, minX - pad, minY - pad, Math.max(maxX - minX, 1) + pad * 2, Math.max(maxY - minY, 1) + pad * 2, "rotate-fitting", "data-fitting-id", fit.id, 10);
+      addRotateHandles(controlsGroup, minX - pad, minY - pad, Math.max(maxX - minX, 1) + pad * 2, Math.max(maxY - minY, 1) + pad * 2, "rotate-fitting", "data-fitting-id", fit.id, 10, true);
 
       const typeDef = FITTING_TYPES[fit.type];
       if (typeDef && typeDef.resizable) {
