@@ -216,6 +216,10 @@
         <span>📂 読込</span>
         <input type="file" id="importJsonInput" accept=".json" class="hidden">
       </label>
+      <label class="text-xs bg-emerald-700 hover:bg-emerald-600 text-white border border-emerald-500 px-2.5 py-1.5 rounded-lg transition cursor-pointer flex items-center gap-1" title="住宅配置計画トレーニングで保存したJSON（配置計画・ブロックプラン）を読み込み、間取りの土台にします">
+        <span>🧱 ブロックプラン読込</span>
+        <input type="file" id="importBlockPlanInput" accept=".json" class="hidden">
+      </label>
     </div>
   </header>
 
@@ -5671,6 +5675,129 @@
       reader.readAsText(file);
     }
 
+    // ===== 住宅配置計画トレーニング（配置計画・ブロックプラン）の保存JSONを読み込み、間取りの土台にする =====
+    // 敷地条件・階数・各階のブロック（交通/家事/生理衛生/共同/個人/収納）・階段・バルコニー・外構・玄関・動線を取り込む。
+    // ブロックのまとまりごとに「部屋」を1つ作る（種別は仮の割り当てなので、取り込み後に部屋の種類を変更・分割して間取りにしていく）。
+    const BLOCK_TO_ROOM = {
+      circulation: "CORRIDOR", housework: "KITCHEN", wet: "WASHROOM",
+      common: "LDK", private: "BEDROOM_CHILD", storage: "CLOSET"
+    };
+    const BLOCK_ZONE_LABEL = { circulation: "交通空間", housework: "家事空間", wet: "生理衛生空間", common: "共同空間", private: "個人の空間", storage: "収納空間" };
+    function blockPlanToRooms(data, offX, offY) {
+      const rooms = [], flows = [];
+      let seq = 0;
+      const newId = () => "room_bp_" + Date.now() + "_" + (seq++);
+      const floors = [{ floor: 1, stateGrid: data.placement && data.placement.stateGrid, blockGrid: data.block_plan && data.block_plan.blockGrid, routes: data.routes,
+        entranceArea: data.drawing && data.drawing.entranceArea }];
+      ((data.floors && data.floors.upper) || []).forEach(u => floors.push({ floor: u.floor, stateGrid: u.stateGrid, blockGrid: u.blockGrid, routes: u.routes }));
+      const count = Math.max(1, Math.min(3, (data.floors && data.floors.count) || 1));
+      floors.filter(f => f.floor <= count && Array.isArray(f.stateGrid)).forEach(f => {
+        const sg = f.stateGrid, bg = Array.isArray(f.blockGrid) ? f.blockGrid : [];
+        const R = sg.length, C = (sg[0] || []).length;
+        // 玄関エリア（1階）：{r,c}は1マス(2x2)、{r,c,f:1}は0.5マス単位
+        const entr = new Set();
+        (f.entranceArea || []).forEach(a => {
+          if (!a) return;
+          if (a.f) entr.add(`${a.r},${a.c}`);
+          else for (let i = 0; i < 2; i++) for (let j = 0; j < 2; j++) entr.add(`${a.r * 2 + i},${a.c * 2 + j}`);
+        });
+        // 種別ごとのセル集合に分類
+        const typeOf = (fr, fc) => {
+          const st = sg[fr] && sg[fr][fc];
+          if (st === "stairs") return "STAIRS";
+          if (st === "balcony") return "BALCONY";
+          if (st === "parking") return "PARKING";
+          if (st === "garden") return "GARDEN";
+          if (st === "approach") return "APPROACH";
+          if (st === "house") {
+            if (f.floor === 1 && entr.has(`${fr},${fc}`)) return "ENTRANCE";
+            const z = bg[fr] && bg[fr][fc];
+            return z && BLOCK_TO_ROOM[z] ? "Z:" + z : null;
+          }
+          if (f.floor === 1 && entr.has(`${fr},${fc}`)) return "ENTRANCE";
+          return null;
+        };
+        const seen = Array.from({ length: R }, () => Array(C).fill(false));
+        for (let fr = 0; fr < R; fr++) for (let fc = 0; fc < C; fc++) {
+          if (seen[fr][fc]) continue;
+          const t = typeOf(fr, fc);
+          if (!t) continue;
+          const stack = [[fr, fc]], comp = [];
+          seen[fr][fc] = true;
+          while (stack.length) {
+            const [r, c] = stack.pop(); comp.push([r, c]);
+            [[1, 0], [-1, 0], [0, 1], [0, -1]].forEach(([dr, dc]) => {
+              const nr = r + dr, nc = c + dc;
+              if (nr < 0 || nc < 0 || nr >= R || nc >= C || seen[nr][nc]) return;
+              if (typeOf(nr, nc) === t) { seen[nr][nc] = true; stack.push([nr, nc]); }
+            });
+          }
+          const half = new Set(comp.map(([r, c]) => `${offX * 2 + c},${offY * 2 + r}`));
+          const cells = halfSetToCells(half);
+          const bb = cellsBBox(cells);
+          const zone = t.startsWith("Z:") ? t.slice(2) : null;
+          rooms.push({ id: newId(), type: zone ? BLOCK_TO_ROOM[zone] : t, floor: f.floor, x: bb.x, y: bb.y, w: bb.w, h: bb.h, cells,
+            blockZone: zone || undefined, blockLabel: zone ? BLOCK_ZONE_LABEL[zone] : undefined });
+        }
+        // 動線（交点座標は0.5マス単位 → マス座標へ）
+        const rt = f.routes || {};
+        ["life", "chore"].forEach(kind => (rt[kind] || []).forEach(line0 => {
+          const line = Array.isArray(line0) ? line0 : (line0 && line0.points);
+          if (!Array.isArray(line) || line.length < 2) return;
+          flows.push({ id: "flow_bp_" + Date.now() + "_" + (seq++), kind, floor: f.floor,
+            points: line.map(pt => ({ x: offX + pt.fc / 2, y: offY + pt.fr / 2 })) });
+        }));
+      });
+      return { rooms, flows, count };
+    }
+
+    function importBlockPlanJson(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (evt) => {
+        try {
+          const data = JSON.parse(evt.target.result);
+          const sc = data.site_conditions;
+          if (!sc || !data.placement || !Array.isArray(data.placement.stateGrid)) {
+            showToast("住宅配置計画トレーニングの保存JSONではありません", "❌");
+            return;
+          }
+          saveHistory();
+          // 敷地条件
+          const st = appState.site;
+          st.pattern = sc.currentPattern || "south";
+          st.roadWidths = { S: sc.roadWidthS || 6, N: sc.roadWidthN || 6, E: sc.roadWidthE || 6, W: sc.roadWidthW || 6 };
+          st.flag = { w: sc.flagW || 8, h: sc.flagH || 8, poleW: sc.poleW || 4, poleX: sc.poleX || 0, poleH: sc.poleH || 5 };
+          st.width = sc.cols || st.width;
+          st.height = sc.rows || st.height;
+          normalizeSite(st);
+          appState.gridModule = "shaku";
+          appState.gridUnitM = 0.91;
+          const off = defaultSiteOffset(st);
+          st.offsetX = off.x; st.offsetY = off.y;
+          // 部屋・動線
+          const res = blockPlanToRooms(data, st.offsetX, st.offsetY);
+          appState.rooms = res.rooms;
+          appState.flowLines = res.flows;
+          appState.fittings = []; appState.equipment = [];
+          appState.extraWalls = []; appState.removedWalls = [];
+          appState.maxFloor = res.count;
+          appState.currentFloor = 1;
+          appState.selectedRoomId = null; appState.multiSelectedRoomIds = [];
+          renderFloorButtons();
+          render();
+          fitSiteToView();
+          showToast(`ブロックプランを読み込みました（${res.count}階建て・部屋${res.rooms.length}か所）。部屋の種類を変更・分割して間取りにしましょう`, "🧱");
+        } catch (err) {
+          console.error(err);
+          showToast("ブロックプランの読み込みに失敗しました", "❌");
+        }
+      };
+      reader.readAsText(file);
+      e.target.value = "";
+    }
+
     function switchTab(tab) {
       const diagTabBtn = document.getElementById("tabDiagBtn");
       const missionTabBtn = document.getElementById("tabMissionBtn");
@@ -7297,6 +7424,8 @@
       if (exportJsonBtn) exportJsonBtn.addEventListener("click", exportJson);
       const importJsonInput = document.getElementById("importJsonInput");
       if (importJsonInput) importJsonInput.addEventListener("change", importJson);
+      const importBlockPlanInput = document.getElementById("importBlockPlanInput");
+      if (importBlockPlanInput) importBlockPlanInput.addEventListener("change", importBlockPlanJson);
 
       const tabDiagBtn = document.getElementById("tabDiagBtn");
       if (tabDiagBtn) tabDiagBtn.addEventListener("click", () => switchTab("diag"));
