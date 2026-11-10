@@ -10,6 +10,9 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
   <style>
     body { font-family: 'Noto Sans JP', 'Inter', sans-serif; }
+    /* iPad Safariでは100%が下部バーの裏まで含むため、実際に見えている高さに合わせる */
+    html, body { height: 100%; }
+    @supports (height: 100dvh) { html, body { height: 100dvh; } }
     .rot-handle { cursor: pointer; }
     .rot-handle .rot-icon { opacity: 0; transition: opacity .08s; }
     .rot-handle:hover .rot-icon { opacity: 1; }
@@ -2251,7 +2254,7 @@
               eg.setAttribute("data-vi", vi);
               eg.style.cursor = horiz ? "ns-resize" : "ew-resize";
               const hit = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-              hit.setAttribute("cx", mx); hit.setAttribute("cy", my); hit.setAttribute("r", "10"); hit.setAttribute("fill", "transparent");
+              hit.setAttribute("cx", mx); hit.setAttribute("cy", my); hit.setAttribute("r", COARSE ? "14" : "10"); hit.setAttribute("fill", "transparent");
               eg.appendChild(hit);
               const bw = horiz ? 18 : 7, bh = horiz ? 7 : 18;
               const bar = document.createElementNS("http://www.w3.org/2000/svg", "rect");
@@ -2276,11 +2279,11 @@
               cg.style.cursor = "move";
               const hit = document.createElementNS("http://www.w3.org/2000/svg", "circle");
               hit.setAttribute("cx", v.x * GRID_SIZE); hit.setAttribute("cy", v.y * GRID_SIZE);
-              hit.setAttribute("r", "10"); hit.setAttribute("fill", "transparent");
+              hit.setAttribute("r", COARSE ? "16" : "10"); hit.setAttribute("fill", "transparent");
               cg.appendChild(hit);
               const dot = document.createElementNS("http://www.w3.org/2000/svg", "circle");
               dot.setAttribute("cx", v.x * GRID_SIZE); dot.setAttribute("cy", v.y * GRID_SIZE);
-              dot.setAttribute("r", "4"); dot.setAttribute("fill", "#22d3ee");
+              dot.setAttribute("r", COARSE ? "6" : "4"); dot.setAttribute("fill", "#22d3ee");
               dot.setAttribute("stroke", "#0f172a"); dot.setAttribute("stroke-width", "1.5");
               dot.setAttribute("pointer-events", "none");
               cg.appendChild(dot);
@@ -2349,11 +2352,11 @@
         g.setAttribute("data-action", action);
         g.setAttribute(idAttr, id);
         const hit = document.createElementNS(SVG_NS, "circle");
-        hit.setAttribute("cx", cx); hit.setAttribute("cy", cy); hit.setAttribute("r", "12"); hit.setAttribute("fill", "transparent");
+        hit.setAttribute("cx", cx); hit.setAttribute("cy", cy); hit.setAttribute("r", COARSE ? "20" : "12"); hit.setAttribute("fill", "transparent");
         g.appendChild(hit);
         const dot = document.createElementNS(SVG_NS, "circle");
         dot.setAttribute("class", "rot-dot");
-        dot.setAttribute("cx", cx); dot.setAttribute("cy", cy); dot.setAttribute("r", "4");
+        dot.setAttribute("cx", cx); dot.setAttribute("cy", cy); dot.setAttribute("r", COARSE ? "6" : "4");
         dot.setAttribute("fill", "#f59e0b"); dot.setAttribute("stroke", "#0f172a"); dot.setAttribute("stroke-width", "1.5");
         dot.setAttribute("pointer-events", "none");
         g.appendChild(dot);
@@ -2839,7 +2842,7 @@
       const c = document.createElementNS(SVG_NS, "circle");
       c.setAttribute("cx", cx);
       c.setAttribute("cy", cy);
-      c.setAttribute("r", "11");
+      c.setAttribute("r", COARSE ? "15" : "11");
       c.setAttribute("fill", bg);
       c.setAttribute("stroke", "#ffffff");
       c.setAttribute("stroke-width", "1.5");
@@ -2942,7 +2945,7 @@
         hit.setAttribute("x2", ep.p2.x);
         hit.setAttribute("y2", ep.p2.y);
         hit.setAttribute("stroke", "transparent");
-        hit.setAttribute("stroke-width", "16");
+        hit.setAttribute("stroke-width", COARSE ? "40" : "16");
         g.appendChild(hit);
 
         const visual = document.createElementNS(SVG_NS, "g");
@@ -5452,6 +5455,8 @@
     }
 
     const CANVAS_W = 1200, CANVAS_H = 720;
+    // タッチ操作(iPadなど)では、ハンドルや建具のつかめる範囲を大きくする
+    const COARSE = !!(window.matchMedia && window.matchMedia('(pointer: coarse)').matches);
     function isMobileView() { return window.innerWidth < 768; }
 
     function layoutCanvasWrapper() {
@@ -5466,8 +5471,21 @@
       const mt = Math.max(0, (availH - CANVAS_H * z) / 2);
       wrapper.style.marginLeft = ml + "px";
       wrapper.style.marginTop = mt + "px";
+      // 拡大時も図面の下端・右端まで十分にスクロールして見えるよう、余白(画面下のバー等に隠れない分)を確保する
       wrapper.style.marginRight = z < 1 ? ((z - 1) * CANVAS_W) + "px" : "0px";
       wrapper.style.marginBottom = z < 1 ? ((z - 1) * CANVAS_H) + "px" : "0px";
+      // 図面の下端・右端の先にも余白を確保し、2本指で動かして最後まで見られるようにする
+      let sp = document.getElementById("canvasScrollSpacer");
+      if (!sp) {
+        sp = document.createElement("div");
+        sp.id = "canvasScrollSpacer";
+        sp.style.cssText = "position:absolute;width:1px;height:1px;pointer-events:none;visibility:hidden;";
+        cont.appendChild(sp);
+        if (getComputedStyle(cont).position === "static") cont.style.position = "relative";
+      }
+      const padT = parseFloat(cs.paddingTop) || 0, padL = parseFloat(cs.paddingLeft) || 0;
+      sp.style.top = (padT + mt + CANVAS_H * z + 240) + "px";
+      sp.style.left = (padL + ml + CANVAS_W * z + 120) + "px";
     }
 
     function setZoom(level, keepCenter) {
@@ -7639,7 +7657,8 @@
         fire("mousedown", downTarget, t);
       }, { passive: false });
 
-      svg.addEventListener("touchmove", (e) => {
+      const moveH = (e) => {
+        if (!mode || e.__mm) return; e.__mm = true;
         if (mode === "pinch" && e.touches.length >= 2) {
           e.preventDefault();
           const d = dist(e.touches[0], e.touches[1]);
@@ -7659,9 +7678,10 @@
           if (Math.hypot(t.clientX - startPt.x, t.clientY - startPt.y) > 6) moved = true;
           fire("mousemove", window, t);
         }
-      }, { passive: false });
+      };
 
       const end = (e) => {
+        if (!mode || e.__mm) return; e.__mm = true;
         if (mode === "pinch") {
           if (e.touches.length === 0) mode = null;
           return;
@@ -7682,11 +7702,25 @@
           }
         }
       };
-      svg.addEventListener("touchend", end, { passive: false });
-      svg.addEventListener("touchcancel", (e) => {
+      const cancelH = (e) => {
+        if (!mode || e.__mm) return; e.__mm = true;
         if (mode === "draw") fire("mouseup", window, (e.changedTouches && e.changedTouches[0]) || { clientX: 0, clientY: 0 });
         mode = null;
-      }, { passive: false });
+      };
+      // 指を置いた瞬間に再描画で要素が差し替わると、その要素(DOMから外れる)にしか後続のtouchmove/touchendが届かない。
+      // そのため、指を置いた要素自身にも同じ処理を登録しておく(部屋・建具の移動や拡大がタッチでできない問題の対策)。
+      const hooked = new WeakSet();
+      const hook = (node) => {
+        if (!node || hooked.has(node)) return;
+        hooked.add(node);
+        node.addEventListener("touchmove", moveH, { passive: false });
+        node.addEventListener("touchend", end, { passive: false });
+        node.addEventListener("touchcancel", cancelH, { passive: false });
+      };
+      svg.addEventListener("touchmove", moveH, { passive: false });
+      svg.addEventListener("touchend", end, { passive: false });
+      svg.addEventListener("touchcancel", cancelH, { passive: false });
+      svg.addEventListener("touchstart", (e) => { hook(e.target); }, { passive: true, capture: true });
     }
 
     window.onload = function () {
