@@ -49,6 +49,9 @@
     /* ---- PC/タブレット: 左は短い名称のグループ見出しのみ。クリックで右側にパーツ一覧を展開 ---- */
     .palette-toggle { width: 100%; display: flex; align-items: center; justify-content: space-between; font-size: 13px; font-weight: 700; color: #cbd5e1; background: #0f172a; border: 1px solid #1e293b; border-radius: 8px; padding: 8px 10px; transition: background .15s; }
     .palette-toggle:hover { background: #1e293b; color: #fff; }
+    .palette-toggle.pal-active, .palette-toggle.pal-active:hover { background: #f59e0b !important; border-color: #fde68a !important; color: #1c1917 !important; box-shadow: 0 0 0 2px rgba(251,191,36,.6); }
+    .palette-toggle .pal-sel { display: none; margin-left: auto; margin-right: 6px; font-size: 11px; font-weight: 800; max-width: 7em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .palette-toggle.pal-active .pal-sel { display: inline; }
     .palette-toggle.fly-on { background: #4f46e5; border-color: #818cf8; color: #fff; }
     @media (min-width: 768px) {
       #leftScroll [data-sec] { padding-top: 0 !important; border-top: 0 !important; }
@@ -164,10 +167,10 @@
       <div>
         <h1 class="font-bold text-sm sm:text-base text-white tracking-wide flex items-center gap-2 whitespace-nowrap">
           住宅間取り作成トレーニング <span class="bg-indigo-500/20 text-indigo-400 text-xs px-2 py-0.5 rounded border border-indigo-500/30 font-semibold">Pro v3.0</span>
-          <span id="updateBadge" class="hidden min-[1600px]:inline text-[10px] text-amber-300 whitespace-nowrap font-normal">更新版（2026年11月5日更新）</span>
+          <span id="updateBadge" class="hidden min-[1600px]:inline text-[10px] text-amber-300 whitespace-nowrap font-normal">更新版（2026年11月10日更新）</span>
           <span id="moduleBadge" class="bg-emerald-500/15 text-emerald-300 text-[10px] sm:text-xs px-2 py-0.5 rounded border border-emerald-500/30 font-semibold whitespace-nowrap">尺モジュール 910mm</span>
         </h1>
-        <div class="hidden sm:block min-[1600px]:hidden text-[10px] leading-tight text-amber-300 whitespace-nowrap">更新版（2026年11月5日更新）</div>
+        <div class="hidden sm:block min-[1600px]:hidden text-[10px] leading-tight text-amber-300 whitespace-nowrap">更新版（2026年11月10日更新）</div>
       </div>
     </div>
 
@@ -318,6 +321,7 @@
               <button id="flowFinishBtn" type="button" class="bg-emerald-700 hover:bg-emerald-600 text-white text-[11px] py-1.5 px-2 rounded-lg font-medium transition border border-emerald-600">✓ 確定</button>
               <button id="flowBackBtn" type="button" class="bg-slate-800 hover:bg-slate-700 text-slate-200 text-[11px] py-1.5 px-2 rounded-lg font-medium transition border border-slate-700">↩ 1つ戻す</button>
             </div>
+            <button id="flowHideBtn" type="button" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-200 text-[11px] py-1.5 px-2 rounded-lg font-medium transition border border-slate-700">👁 動線を非表示</button>
             <button id="flowClearBtn" type="button" class="w-full bg-slate-800 hover:bg-rose-700 text-slate-300 hover:text-white text-[11px] py-1.5 px-2 rounded-lg font-medium transition border border-slate-700">🧹 この階の動線をクリア</button>
             <p id="flowHint" class="text-[10px] text-slate-500 leading-relaxed">「生活動線」「家事動線」のどちらかを選び、図面上をクリックして描きます。</p>
           </div></div>
@@ -325,7 +329,7 @@
       </div>
 
       <div id="leftFoot" class="p-3 border-t border-slate-800 text-[11px] text-slate-500 bg-slate-950/80">
-        操作: ドラッグ移動 / 敷地は✥ボタンで移動 / 部屋・外構は角の点/辺のバーをドラッグで変形 / 建具・設備は辺の中央の↻で回転 / ホイールでズーム
+        操作: ドラッグ移動 / 敷地は「敷地設定」→「✥ 敷地を移動」で移動 / 部屋・外構は角の点/辺のバーをドラッグで変形 / 建具・設備は辺の中央の↻で回転 / ホイールでズーム
       </div>
       <!-- スマホ用: 画面下部のパレット切替タブ -->
       <div id="mobTabBar" role="tablist">
@@ -746,9 +750,14 @@
         </div>
 
         <div class="flex items-center justify-between gap-2 pt-2">
-          <button id="centerSiteBtn" type="button" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-2 rounded-xl text-xs font-medium transition">
-            🎯 キャンバス中央に配置
-          </button>
+          <div class="flex items-center gap-2">
+            <button id="centerSiteBtn" type="button" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-2 rounded-xl text-xs font-medium transition">
+              🎯 キャンバス中央に配置
+            </button>
+            <button id="moveSiteBtn" type="button" class="bg-emerald-900/60 hover:bg-emerald-800 border border-emerald-500/50 text-emerald-200 px-3 py-2 rounded-xl text-xs font-bold transition">
+              ✥ 敷地を移動
+            </button>
+          </div>
           <button id="applySiteBtn" type="button" class="bg-emerald-600 hover:bg-emerald-500 text-white px-5 py-2 rounded-xl text-xs font-bold shadow transition">
             敷地設定を確定
           </button>
@@ -2333,7 +2342,6 @@
       renderFittings();
       renderEquipment();
       renderFlowLines();
-      renderSiteHandle();
       evaluateLayout();
     }
 
@@ -2438,13 +2446,18 @@
         }
       } else if (fit.orientation === "h") { nx = fit.x + n / 2; ny = fit.y - n / 2; fit.orientation = "v"; }
       else { nx = fit.x - n / 2; ny = fit.y + n / 2; fit.orientation = "h"; }
+      // 中心まわりの回転で幅が奇数×0.5マスのとき、中心が0.25マス刻みになる。往復しても元に戻る向きで0.5マスに丸める
+      // (横→縦: x は切り上げ・y は切り下げ / 縦→横: x は切り下げ・y は切り上げ)
+      const up = v => Math.ceil(v * 2 - 1e-9) / 2, dn = v => Math.floor(v * 2 + 1e-9) / 2;
       // 折れ戸: 時計回りに 上→右→下→左 と4方向へ向くよう、横→縦の回転ごとに表裏を反転する
       if ((fit.type === "BIFOLD" || fit.type === "GATE") && prev.o === "h") fit.swingSide = fit.swingSide === "back" ? "front" : "back";
       const spanX = fit.orientation === "h" ? n : 0, spanY = fit.orientation === "v" ? n : 0;
       // 門扉・塀は中心を動かさずその場で回転する(0.5マス単位。整数に丸めると右下へずれていくため)
-      const rnd = isExteriorFittingKey(fit.type) ? (v => Math.round(v * 2) / 2) : Math.round;
-      fit.x = Math.max(0, Math.min(GRID_COLS - spanX, rnd(nx)));
-      fit.y = Math.max(0, Math.min(GRID_ROWS - spanY, rnd(ny)));
+      const toV = prev.o === "h";
+      const rx = fit.type === "SWING_DOOR" ? (v => Math.round(v * 2) / 2) : (toV ? up : dn);
+      const ry = fit.type === "SWING_DOOR" ? (v => Math.round(v * 2) / 2) : (toV ? dn : up);
+      fit.x = Math.max(0, Math.min(GRID_COLS - spanX, rx(nx)));
+      fit.y = Math.max(0, Math.min(GRID_ROWS - spanY, ry(ny)));
       const blocked = setbackBlocked(before, fittingSetbackPenetration(fit));
       const next = { x: fit.x, y: fit.y, o: fit.orientation, hs: fit.hingeSide, ss: fit.swingSide };
       fit.x = prev.x; fit.y = prev.y; fit.orientation = prev.o; fit.hingeSide = prev.hs; fit.swingSide = prev.ss;
@@ -2487,7 +2500,7 @@
     }
 
     // 建具の戸・窓の色(全種別で統一)
-    const FITTING_COLOR = "#38bdf8";
+    const FITTING_COLOR = "#ff5a00"; // 建具の線色(水色だと見えにくいため鮮やかなオレンジ)
 
     // 建具は壁の内法に表示: 開口の両端から壁厚の半分(150mmなら75mm)ずつ内側から戸・窓を描く
     function insetFittingEndpoints(ep) {
@@ -2598,11 +2611,18 @@
         y: ep.p1.y + dir.y * t + perp.y * off
       });
       const stroke = fit.type === "FLOOR_WINDOW" ? FITTING_COLOR : FITTING_COLOR;
+      // 戸の前後: 横配置は上、縦配置は(時計回りに回した)右を「外側」とする。
+      // 2・3枚は1枚目から外・内・外…、4枚は両端2枚が内側・中央2枚が外側
+      const outerSign = ep.horizontal ? -1 : 1;
+      const doorSign = i => {
+        const outer = n === 4 ? (i === 1 || i === 2) : (i % 2 === 0);
+        return outer ? outerSign : -outerSign;
+      };
 
       for (let i = 0; i < n; i++) {
         const t1 = i * seg - (i > 0 ? overlap : 0);
         const t2 = (i + 1) * seg + (i < n - 1 ? overlap : 0);
-        const off = (i % 2 === 0 ? -1 : 1) * trackOffset;
+        const off = doorSign(i) * trackOffset;
         const a = at(t1, off), b2 = at(t2, off);
         const panel = document.createElementNS(SVG_NS, "line");
         panel.setAttribute("x1", a.x); panel.setAttribute("y1", a.y);
@@ -2628,7 +2648,7 @@
         const P = (m, d, u) => ({ x: m.x + dir.x * d + perp.x * u, y: m.y + dir.y * d + perp.y * u });
         for (let k = 1; k < n; k++) {
           const m = at(k * seg, 0);
-          const sg = (k - 1) % 2 === 0 ? 1 : -1; // 左側の戸が手前(上)なら1、奥なら反転
+          const sg = -doorSign(k - 1); // 左側の戸が手前(上)なら1、奥なら反転
           line(P(m, 0, -E), P(m, 0, E));
           line(P(m, 0, -E * sg), P(m, dx, (-E + dy) * sg));
           line(P(m, -dx, (E - dy) * sg), P(m, 0, E * sg));
@@ -2690,10 +2710,9 @@
       }
 
       if (leafCount === 1) {
-        const mid = { x: (ep.p1.x + ep.p2.x) / 2, y: (ep.p1.y + ep.p2.y) / 2 };
-        const segStart = { x: mid.x - dir.x * halfLeaf, y: mid.y - dir.y * halfLeaf };
-        const segEnd = { x: mid.x + dir.x * halfLeaf, y: mid.y + dir.y * halfLeaf };
-        drawLeaf(segStart, segEnd);
+        // 1枚の場合は開口の端(始点側/終点側を選択可)に寄せる
+        if (fit.leafSide === "end") drawLeaf({ x: ep.p2.x - dir.x * leafLen, y: ep.p2.y - dir.y * leafLen }, ep.p2);
+        else drawLeaf(ep.p1, { x: ep.p1.x + dir.x * leafLen, y: ep.p1.y + dir.y * leafLen });
       } else {
         const leftEnd = { x: ep.p1.x + dir.x * leafLen, y: ep.p1.y + dir.y * leafLen };
         drawLeaf(ep.p1, leftEnd);
@@ -2918,6 +2937,10 @@
         addBtn(getSlideCount(fit) + "枚", "toggle-slide-count", "#0ea5e9");
       } else if (fit.type === "BIFOLD") {
         addBtn((fit.leafCount === 1 ? 1 : 2) + "枚", "toggle-leaf-count", "#22c55e");
+        if (fit.leafCount === 1) {
+          const h = fit.orientation === "h";
+          addBtn(fit.leafSide === "end" ? (h ? "右寄" : "下寄") : (h ? "左寄" : "上寄"), "toggle-leaf-side", "#16a34a");
+        }
       }
 
       addRotateHandles(controlsGroup, minX - pad, minY - pad, Math.max(maxX - minX, 1) + pad * 2, Math.max(maxY - minY, 1) + pad * 2, "rotate-fitting", "data-fitting-id", fit.id, 10, true);
@@ -3836,7 +3859,43 @@
     }
 
     // --- 建具: 壁に沿ってドラッグ配置 ---
+    // いま選択中のパーツが、左パレットのどのまとまり(部屋/外構/建具/設備/動線)かを示す
+    function currentPartGroup() {
+      const m = currentDrawMode;
+      if (m === 'paint' && paintTargetType) {
+        const d = getPartDefForPaint(paintTargetType);
+        return { sec: EXTERIOR_TYPES[paintTargetType] ? 'exterior' : 'room', name: d ? d.name.split(" ")[0] : '' };
+      }
+      if (m === 'wallAdd') return { sec: 'room', name: '壁追加' };
+      if (m === 'wallDel') return { sec: 'room', name: '壁削除' };
+      if (m === 'fitting' && fittingPlaceKey) {
+        const d = fittingDefOf(fittingPlaceKey);
+        return { sec: isExteriorFittingKey(fittingPlaceKey) ? 'exterior' : 'fitting', name: d ? d.name.split(" ")[0] : '' };
+      }
+      if (m === 'equipment' && equipPlaceKey) return { sec: 'equipment', name: (EQUIPMENT_TYPES[equipPlaceKey] || {}).name || '' };
+      if (m === 'flow' && flowKind) return { sec: 'flow', name: FLOW_KINDS[flowKind].name };
+      return null;
+    }
+    function updatePaletteGroupActive() {
+      const cur = currentPartGroup();
+      document.querySelectorAll("#leftAside [data-sec]").forEach(sec => {
+        const t = sec.querySelector(".palette-toggle");
+        if (!t) return;
+        const on = !!cur && sec.getAttribute("data-sec") === cur.sec;
+        t.classList.toggle("pal-active", on);
+        let lab = t.querySelector(".pal-sel");
+        if (!lab) {
+          lab = document.createElement("span");
+          lab.className = "pal-sel";
+          const chev = t.querySelector(".palette-chevron");
+          t.insertBefore(lab, chev || null);
+        }
+        lab.textContent = on ? "▶ " + cur.name : "";
+      });
+    }
+
     function updateFittingPaletteSelection() {
+      updatePaletteGroupActive();
       document.querySelectorAll("#roomPaletteList [data-paintkey], #exteriorPaletteList [data-paintkey]").forEach(b => {
         b.classList.toggle("fit-selected", currentDrawMode === 'paint' && b.getAttribute("data-paintkey") === paintTargetType);
       });
@@ -4104,6 +4163,7 @@
     }
 
     function setDrawMode(mode, targetType) {
+      if (siteMoveMode) { siteMoveMode = false; const b = document.getElementById("siteMoveBar"); if (b) b.style.display = "none"; if (planSvg) planSvg.style.cursor = ""; }
       currentDrawMode = mode;
       paintTargetType = (mode === 'paint' && targetType) ? targetType : null;
       polyPoints = [];
@@ -4113,6 +4173,7 @@
       flowDraft = null;
       flowHover = null;
       flowKind = (mode === 'flow' && targetType) ? targetType : null;
+      if (flowKind && flowHidden) { flowHidden = false; updateFlowHideBtn(); renderFlowLines(); }
       fittingPlaceKey = (mode === 'fitting' && targetType) ? targetType : null;
       fittingHover = null;
       fittingLock = null;
@@ -4127,7 +4188,7 @@
         if (mode === 'none') modeBadge.textContent = "通常選択モード";
         else if (mode === 'wallAdd') modeBadge.textContent = "🧱 壁追加: マス目の線に沿ってドラッグ (Escで解除)";
         else if (mode === 'wallDel') modeBadge.textContent = "✂️ 壁削除: 隣り合う部屋の間の壁をなぞって削除 (Escで解除)";
-        else if (mode === 'eraser') modeBadge.textContent = "🧽 消しゴムモード: 削除するマス目をクリック/ドラッグ";
+        else if (mode === 'eraser') modeBadge.textContent = "🧽 消しゴムモード: 最前面のもの(動線→建具→設備→部屋)から消します。クリック/ドラッグ";
         else if (mode === 'fitting' && fittingPlaceKey) modeBadge.textContent = `🚪 ${fittingDefOf(fittingPlaceKey).name}: 壁に沿ってクリック/ドラッグで配置 (Escで解除)`;
         else if (mode === 'equipment' && equipPlaceKey) modeBadge.textContent = `${EQUIPMENT_TYPES[equipPlaceKey].icon} ${EQUIPMENT_TYPES[equipPlaceKey].name}: クリック(タップ)で配置 (Escで解除)`;
         else if (mode === 'flow' && flowKind) modeBadge.textContent = `🚶 ${FLOW_KINDS[flowKind].name}を作図中: クリックで点を追加(直角に自動補正)`;
@@ -4365,7 +4426,8 @@
 
       if (currentDrawMode === 'eraser') {
         eraseStrokeSaved = false;
-        if (eraseAtPos(pos)) render();
+        eraseLayer = eraseTopAt(pos, null);
+        if (eraseLayer) render();
         return;
       }
 
@@ -4435,6 +4497,13 @@
             if (fit.widthUnits < fit.slideCount) fit.widthUnits = Math.min(spanMax, fit.slideCount);
             render();
             showToast(`${FITTING_TYPES[fit.type].name}を${fit.slideCount}枚に変更しました`, "🔀");
+            return;
+          }
+
+          if (action === "toggle-leaf-side") {
+            saveHistory();
+            fit.leafSide = fit.leafSide === "end" ? "start" : "end";
+            render();
             return;
           }
 
@@ -4741,7 +4810,8 @@
       }
 
       if (currentDrawMode === 'eraser' && isMouseDown) {
-        if (eraseAtPos(pos)) render();
+        const L = eraseTopAt(pos, eraseLayer);
+        if (L) { if (!eraseLayer) eraseLayer = L; render(); }
         return;
       }
 
@@ -4893,7 +4963,7 @@
         fittingLock = null;
         return;
       }
-      if (currentDrawMode === 'eraser') { eraseStrokeSaved = false; dragData = null; return; }
+      if (currentDrawMode === 'eraser') { eraseStrokeSaved = false; eraseLayer = null; dragData = null; return; }
 
       // パレットでパーツを選んで塗った場合は、塗り終えた(マウスを離した)時点でそのパーツを配置する
       if (wasMouseDown && currentDrawMode === 'paint' && paintTargetType && !paintEraseMode && paintedCells.size > 0) {
@@ -6540,6 +6610,68 @@
       }
     }
 
+    // 消しゴム: 最前面のものから消す(動線 → 建具 → 設備 → 部屋)。ドラッグ中は最初に消した層だけを続けて消す
+    let eraseLayer = null;
+    function eraseSaveOnce() { if (!eraseStrokeSaved) { saveHistory(); eraseStrokeSaved = true; } }
+    function distToSeg(px, py, ax, ay, bx, by) {
+      const dx = bx - ax, dy = by - ay, l2 = dx * dx + dy * dy;
+      let t = l2 ? ((px - ax) * dx + (py - ay) * dy) / l2 : 0;
+      t = Math.max(0, Math.min(1, t));
+      return Math.hypot(px - (ax + t * dx), py - (ay + t * dy));
+    }
+    function eraseTopAt(pos, only) {
+      const layers = only ? [only] : ['flow', 'fitting', 'equipment', 'room'];
+      const tol = COARSE ? 14 : 8;
+      const fl = appState.currentFloor;
+      for (const L of layers) {
+        if (L === 'flow') {
+          const lines = flowHidden ? [] : (appState.flowLines || []).filter(l => l.floor === fl && l.points && l.points.length >= 2);
+          const ordered = lines.filter(l => l.kind === 'chore').concat(lines.filter(l => l.kind !== 'chore')).reverse();
+          const hit = ordered.find(l => {
+            for (let i = 0; i < l.points.length - 1; i++) {
+              const a = l.points[i], b = l.points[i + 1];
+              if (distToSeg(pos.rawX, pos.rawY, a.x * GRID_SIZE, a.y * GRID_SIZE, b.x * GRID_SIZE, b.y * GRID_SIZE) <= tol) return true;
+            }
+            return false;
+          });
+          if (hit) {
+            eraseSaveOnce();
+            appState.flowLines = appState.flowLines.filter(l => l.id !== hit.id);
+            return 'flow';
+          }
+        } else if (L === 'fitting') {
+          const hit = [...appState.fittings].reverse().find(f => {
+            if (f.floor !== fl) return false;
+            const ep = getFittingEndpoints(f);
+            return distToSeg(pos.rawX, pos.rawY, ep.p1.x, ep.p1.y, ep.p2.x, ep.p2.y) <= tol;
+          });
+          if (hit) {
+            eraseSaveOnce();
+            appState.fittings = appState.fittings.filter(f => f.id !== hit.id);
+            if (appState.selectedFittingId === hit.id) appState.selectedFittingId = null;
+            appState.multiSelectedFittingIds = (appState.multiSelectedFittingIds || []).filter(id => id !== hit.id);
+            return 'fitting';
+          }
+        } else if (L === 'equipment') {
+          const hit = [...appState.equipment].reverse().find(eq => {
+            if (eq.floor !== fl) return false;
+            const b = getEquipmentBoxPx(eq);
+            return pos.rawX >= b.x && pos.rawX <= b.x + b.w && pos.rawY >= b.y && pos.rawY <= b.y + b.h;
+          });
+          if (hit) {
+            eraseSaveOnce();
+            appState.equipment = appState.equipment.filter(eq => eq.id !== hit.id);
+            if (appState.selectedEquipmentId === hit.id) appState.selectedEquipmentId = null;
+            if (appState.multiSelectedEquipmentIds) appState.multiSelectedEquipmentIds = appState.multiSelectedEquipmentIds.filter(id => id !== hit.id);
+            return 'equipment';
+          }
+        } else if (L === 'room') {
+          if (eraseAtPos(pos)) return 'room';
+        }
+      }
+      return null;
+    }
+
     function eraseAtPos(pos) {
       if (paintUnit === 1) return eraseCellAt(pos.x, pos.y, 1);
       return eraseCellAt(pos.fx !== undefined ? pos.fx : pos.x, pos.fy !== undefined ? pos.fy : pos.y, 0.5);
@@ -6627,10 +6759,32 @@
       };
     }
 
+    // 敷地の移動: 「敷地設定」の「✥ 敷地を移動」ボタンで移動モードに入り、図面上をドラッグして動かす
+    let siteMoveMode = false;
+    function setSiteMoveMode(on) {
+      siteMoveMode = on;
+      let bar = document.getElementById("siteMoveBar");
+      if (on) {
+        setDrawMode('none');
+        siteMoveMode = true;
+        if (!bar) {
+          bar = document.createElement("div");
+          bar.id = "siteMoveBar";
+          bar.style.cssText = "position:fixed;left:50%;top:14px;transform:translateX(-50%);z-index:90;display:flex;align-items:center;gap:10px;background:#064e3b;border:2px solid #10b981;color:#d1fae5;padding:8px 12px;border-radius:14px;font-size:13px;font-weight:700;box-shadow:0 6px 24px rgba(0,0,0,.5)";
+          bar.innerHTML = '<span>✥ 敷地移動中: 図面をドラッグすると敷地が動きます(建物はそのまま)</span><button type="button" id="siteMoveDone" style="background:#10b981;color:#022c22;border-radius:10px;padding:8px 14px;font-weight:800;min-height:36px">移動を終了</button>';
+          document.body.appendChild(bar);
+          bar.querySelector("#siteMoveDone").addEventListener("click", () => setSiteMoveMode(false));
+        }
+        bar.style.display = "flex";
+        if (planSvg) planSvg.style.cursor = "move";
+      } else {
+        if (bar) bar.style.display = "none";
+        if (planSvg) planSvg.style.cursor = "";
+      }
+    }
+
     function tryStartSiteDrag(pos) {
-      if (currentDrawMode !== 'none') return false;
-      const r = getSiteHandleRect();
-      if (pos.rawX < r.x || pos.rawX > r.x + r.w || pos.rawY < r.y || pos.rawY > r.y + r.h) return false;
+      if (!siteMoveMode) return false;
       dragData = {
         kind: "site", startRawX: pos.rawX, startRawY: pos.rawY,
         origX: appState.site.offsetX, origY: appState.site.offsetY, moved: false
@@ -6678,9 +6832,14 @@
     let flowHover = null;  // カーソル位置(マス中心)
 
     // ---------- 作図 ----------
+    // 動線の点は 0.5マス単位(半マスの格子点)にスナップする
     function flowSnap(e) {
       const g = getSvgGridPos(e);
-      return { x: g.x + 0.5, y: g.y + 0.5 };
+      const half = GRID_SIZE / 2;
+      return {
+        x: Math.max(0, Math.min(GRID_COLS, Math.round(g.rawX / half) / 2)),
+        y: Math.max(0, Math.min(GRID_ROWS, Math.round(g.rawY / half) / 2))
+      };
     }
 
     // 直前の点と同じ縦または横の軸に揃える(動線を直角の折れ線にする)
@@ -6694,17 +6853,17 @@
     let flowDrag = null;       // { ref: {draft:true}|{line}, idx, moved, startEv }
     function flowHitPoint(e) {
       const g = getSvgGridPos(e);
-      const R = 10;
-      const near = p => Math.hypot(p.x * GRID_SIZE - g.rawX, p.y * GRID_SIZE - g.rawY) <= R;
+      const R = COARSE ? 13 : 8; // 0.5マス=12pxなので、重ならないよう小さめにし、最も近い点を選ぶ
+      const dist = p => Math.hypot(p.x * GRID_SIZE - g.rawX, p.y * GRID_SIZE - g.rawY);
+      let best = null, bd = R + 0.001;
+      if (flowHidden) return null;
       if (flowDraft) {
-        for (let i = flowDraft.points.length - 1; i >= 0; i--) if (near(flowDraft.points[i])) return { draft: true, idx: i };
+        flowDraft.points.forEach((p, i) => { const d = dist(p); if (d < bd) { bd = d; best = { draft: true, idx: i }; } });
       }
-      const lines = (appState.flowLines || []).filter(l => l.floor === appState.currentFloor && l.points);
-      for (let li = lines.length - 1; li >= 0; li--) {
-        const l = lines[li];
-        for (let i = 0; i < l.points.length; i++) if (near(l.points[i])) return { line: l, idx: i };
-      }
-      return null;
+      (appState.flowLines || []).filter(l => l.floor === appState.currentFloor && l.points).forEach(l => {
+        l.points.forEach((p, i) => { const d = dist(p); if (d < bd) { bd = d; best = { line: l, idx: i }; } });
+      });
+      return best;
     }
 
     function flowMovePoint(drag, target) {
@@ -6867,10 +7026,28 @@
       return el;
     }
 
+    // 動線の表示/非表示(画面表示だけの切替。作図データ・診断には影響しない)
+    let flowHidden = false;
+    function updateFlowHideBtn() {
+      const b = document.getElementById("flowHideBtn");
+      if (!b) return;
+      b.textContent = flowHidden ? "👁 動線を表示する" : "👁 動線を非表示";
+      b.className = "w-full text-[11px] py-1.5 px-2 rounded-lg font-medium transition border " +
+        (flowHidden ? "bg-amber-500 hover:bg-amber-400 text-slate-900 border-amber-300 font-bold" : "bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-700");
+    }
+    function setFlowHidden(v) {
+      if (flowHidden === v) return;
+      flowHidden = v;
+      updateFlowHideBtn();
+      render();
+      showToast(v ? "動線を非表示にしました(データは残っています)" : "動線を表示しました", "👁");
+    }
+
     function renderFlowLines() {
       const g = document.getElementById("flowGroup");
       if (!g) return;
       g.innerHTML = "";
+      if (flowHidden) return;
       const lines = (appState.flowLines || []).filter(l => l.floor === appState.currentFloor && l.points && l.points.length >= 2);
       // 太い生活動線を下、細い家事動線を上に描き、重なっても両方見えるようにする
       ["life", "chore"].forEach(kind => {
@@ -6907,9 +7084,13 @@
             stroke: def.color, "stroke-width": 2.5, "stroke-dasharray": "6 4", opacity: "0.8", "pointer-events": "none"
           }));
         }
-        ghostGroup.appendChild(flowSvg("rect", {
-          x: Math.floor(target.x) * GRID_SIZE, y: Math.floor(target.y) * GRID_SIZE, width: GRID_SIZE, height: GRID_SIZE,
-          fill: "none", stroke: def.color, "stroke-width": 1.5, opacity: "0.9", "pointer-events": "none"
+        ghostGroup.appendChild(flowSvg("circle", {
+          cx: target.x * GRID_SIZE, cy: target.y * GRID_SIZE, r: 6,
+          fill: "none", stroke: def.color, "stroke-width": 2, opacity: "0.9", "pointer-events": "none"
+        }));
+        ghostGroup.appendChild(flowSvg("circle", {
+          cx: target.x * GRID_SIZE, cy: target.y * GRID_SIZE, r: 1.8,
+          fill: def.color, opacity: "0.9", "pointer-events": "none"
         }));
       }
 
@@ -6949,7 +7130,7 @@
       } else if (!flowDraft) {
         el.textContent = `${FLOW_KINDS[flowKind].name}: 始点をクリック。既存の線の上のマスから始めると分岐できます。`;
       } else {
-        el.textContent = `${FLOW_KINDS[flowKind].name}: ${flowDraft.points.length}点。クリックで点を追加(直角に補正)。同じ点を再クリック / ダブルクリック / Enter で確定、Escで中止。`;
+        el.textContent = `${FLOW_KINDS[flowKind].name}: ${flowDraft.points.length}点。クリックで点を追加(0.5マス単位・直角に補正)。同じ点を再クリック / ダブルクリック / Enter で確定、Escで中止。`;
       }
     }
 
@@ -7204,6 +7385,8 @@
       const choreBtn = document.getElementById("flowChoreBtn");
       const finishBtn = document.getElementById("flowFinishBtn");
       const backBtn = document.getElementById("flowBackBtn");
+      const hideBtn = document.getElementById("flowHideBtn");
+      if (hideBtn) hideBtn.addEventListener("click", () => setFlowHidden(!flowHidden));
       const clearBtn = document.getElementById("flowClearBtn");
       const toggle = (kind) => {
         if (currentDrawMode === 'flow' && flowKind === kind) setDrawMode('none');
@@ -7301,6 +7484,8 @@
       if (closeSiteModalBtn) closeSiteModalBtn.addEventListener("click", () => siteModal.classList.add("hidden"));
       if (applySiteBtn) applySiteBtn.addEventListener("click", applySiteSettings);
       if (centerSiteBtn) centerSiteBtn.addEventListener("click", centerSiteOnCanvas);
+      const moveSiteBtn = document.getElementById("moveSiteBtn");
+      if (moveSiteBtn) moveSiteBtn.addEventListener("click", () => { siteModal.classList.add("hidden"); setSiteMoveMode(true); });
 
       if (siteWidthInput) siteWidthInput.addEventListener("input", updateSiteModalDisplay);
       if (siteHeightInput) siteHeightInput.addEventListener("input", updateSiteModalDisplay);
