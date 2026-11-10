@@ -7029,6 +7029,20 @@
     // 動線の表示/非表示(画面表示だけの切替。作図データ・診断には影響しない)
     let flowHidden = false;
     function updateFlowHideBtn() {
+      // 「動線」ボタンの右側に「非表示」の印を出す
+      const tg = document.querySelector('#leftAside [data-sec="flow"] .palette-toggle');
+      if (tg) {
+        let tag = tg.querySelector(".flow-hidden-tag");
+        if (!tag) {
+          tag = document.createElement("span");
+          tag.className = "flow-hidden-tag";
+          tag.style.cssText = "margin-left:8px;padding:1px 7px;border-radius:9999px;background:#e11d48;color:#fff;font-size:11px;font-weight:800;white-space:nowrap";
+          tag.textContent = "非表示";
+          const first = tg.querySelector("span");
+          first.insertAdjacentElement("afterend", tag);
+        }
+        tag.style.display = flowHidden ? "inline-block" : "none";
+      }
       const b = document.getElementById("flowHideBtn");
       if (!b) return;
       b.textContent = flowHidden ? "👁 動線を表示する" : "👁 動線を非表示";
