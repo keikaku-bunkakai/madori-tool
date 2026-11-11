@@ -49,6 +49,11 @@
     /* ---- PC/タブレット: 左は短い名称のグループ見出しのみ。クリックで右側にパーツ一覧を展開 ---- */
     .palette-toggle { width: 100%; display: flex; align-items: center; justify-content: space-between; font-size: 13px; font-weight: 700; color: #cbd5e1; background: #0f172a; border: 1px solid #1e293b; border-radius: 8px; padding: 8px 10px; transition: background .15s; }
     .palette-toggle:hover { background: #1e293b; color: #fff; }
+    /* ヘッダーのボタン高さ・文字サイズ・余白を統一 */
+    header .hb { min-height: 34px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 0 12px; font-size: 12px; line-height: 1; white-space: nowrap; border-radius: 8px; font-weight: 600; }
+    header .hseg { min-height: 28px; padding: 0 10px; }
+    header #paintUnitSelect { min-height: 28px; padding-top: 0; padding-bottom: 0; }
+    header #undoBtn { width: 34px; height: 34px; padding: 0; display: inline-flex; align-items: center; justify-content: center; }
     .palette-toggle.pal-active, .palette-toggle.pal-active:hover { background: #f59e0b !important; border-color: #fde68a !important; color: #1c1917 !important; box-shadow: 0 0 0 2px rgba(251,191,36,.6); }
     .palette-toggle .pal-sel { display: none; margin-left: auto; margin-right: 6px; font-size: 11px; font-weight: 800; max-width: 7em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .palette-toggle.pal-active .pal-sel { display: inline; }
@@ -167,22 +172,22 @@
       <div>
         <h1 class="font-bold text-sm sm:text-base text-white tracking-wide flex items-center gap-2 whitespace-nowrap">
           住宅間取り作成トレーニング <span class="bg-indigo-500/20 text-indigo-400 text-xs px-2 py-0.5 rounded border border-indigo-500/30 font-semibold">Pro v3.0</span>
-          <span id="updateBadge" class="hidden min-[1600px]:inline text-[10px] text-amber-300 whitespace-nowrap font-normal">更新版（2026年11月10日更新）</span>
+          <span id="updateBadge" class="hidden min-[1600px]:inline text-[10px] text-amber-300 whitespace-nowrap font-normal">更新版（2026年11月11日更新）</span>
           <span id="moduleBadge" class="bg-emerald-500/15 text-emerald-300 text-[10px] sm:text-xs px-2 py-0.5 rounded border border-emerald-500/30 font-semibold whitespace-nowrap">尺モジュール 910mm</span>
         </h1>
-        <div class="hidden sm:block min-[1600px]:hidden text-[10px] leading-tight text-amber-300 whitespace-nowrap">更新版（2026年11月10日更新）</div>
+        <div class="hidden sm:block min-[1600px]:hidden text-[10px] leading-tight text-amber-300 whitespace-nowrap">更新版（2026年11月11日更新）</div>
       </div>
     </div>
 
     <!-- Center Mode Badge & Scenario Selection Trigger -->
     <div class="hidden md:flex items-center gap-2">
-      <button id="openScenarioBtn" class="flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs px-3 py-1.5 rounded-lg transition">
+      <button id="openScenarioBtn" class="hb flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs px-3 py-1.5 rounded-lg transition">
         <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
         <span id="currentScenarioTitle">シナリオ: 自由設計モード</span>
         <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
       </button>
 
-      <button id="openSiteBtn" class="flex items-center gap-1.5 bg-emerald-900/60 hover:bg-emerald-800 text-emerald-200 border border-emerald-700/60 text-xs px-3 py-1.5 rounded-lg transition font-medium">
+      <button id="openSiteBtn" class="hb flex items-center gap-1.5 bg-emerald-900/60 hover:bg-emerald-800 text-emerald-200 border border-emerald-700/60 text-xs px-3 py-1.5 rounded-lg transition font-medium">
         <span>🏞️ 敷地設定</span>
       </button>
     </div>
@@ -194,17 +199,17 @@
       <button id="mobSiteBtn" class="md:hidden bg-emerald-900/60 text-emerald-200 border border-emerald-700/60 rounded-lg px-2 py-1 text-xs">🏞️ 敷地</button>
       <button id="mobScenarioBtn" class="md:hidden bg-slate-800 text-amber-300 border border-slate-700 rounded-lg px-2 py-1 text-xs">✅ シナリオ</button>
       <div class="flex items-center bg-slate-900 border border-slate-700 rounded-lg p-0.5">
-        <button id="modeSelectPointerBtn" class="flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-md transition font-medium text-slate-400 hover:text-white" title="選択: 配置したパーツを選んで移動・回転・変形・削除">
+        <button id="modeSelectPointerBtn" class="hseg flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-md transition font-medium text-slate-400 hover:text-white" title="選択: 配置したパーツを選んで移動・回転・変形・削除">
           <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M5 3l14 7.5-6.2 1.9L9.5 19z"/></svg><span>選択</span>
         </button>
-        <button id="modeSelectPaintBtn" class="flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-md transition font-medium text-slate-400 hover:text-white" title="マス目塗り描き作成">
+        <button id="modeSelectPaintBtn" class="hseg flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-md transition font-medium text-slate-400 hover:text-white" title="マス目塗り描き作成">
           <span>🖌️ マス目塗り</span>
         </button>
         <select id="paintUnitSelect" class="text-xs bg-slate-800 text-slate-200 border border-slate-700 rounded-md px-1.5 py-1.5 mx-0.5 focus:outline-none focus:border-indigo-500 cursor-pointer" title="マス目塗り・消しゴムの塗りつぶし単位">
           <option value="1">1マス単位</option>
           <option value="0.5">0.5マス単位</option>
         </select>
-        <button id="modeSelectEraserBtn" class="flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-md transition font-medium text-slate-400 hover:text-white" title="消しゴム: 配置済みパーツのマス目を部分的に削除">
+        <button id="modeSelectEraserBtn" class="hseg flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-md transition font-medium text-slate-400 hover:text-white" title="消しゴム: 配置済みパーツのマス目を部分的に削除">
           <span>🧽 消しゴム</span>
         </button>
       </div>
@@ -215,20 +220,17 @@
 
       <div class="h-4 w-px bg-slate-800 mx-1"></div>
 
-      <button id="exportJsonBtn" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 px-2.5 py-1.5 rounded-lg transition flex items-center gap-1">
+      <button id="exportJsonBtn" class="hb text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 px-2.5 py-1.5 rounded-lg transition flex items-center gap-1">
         <span>💾 保存</span>
       </button>
-      <label class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 px-2.5 py-1.5 rounded-lg transition cursor-pointer flex items-center gap-1">
+      <button id="importMenuBtn" type="button" class="hb bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition" title="保存した間取り、またはブロックプラン(住宅配置計画のJSON)を読み込みます">
         <span>📂 読込</span>
-        <input type="file" id="importJsonInput" accept=".json" class="hidden">
-      </label>
-      <button id="resetAllBtn" class="text-xs bg-rose-900/60 hover:bg-rose-800 text-rose-100 border border-rose-700 px-2.5 py-1.5 rounded-lg transition flex items-center gap-1" title="作図した内容をすべて消して最初の状態に戻します">
+      </button>
+      <input type="file" id="importJsonInput" accept=".json" class="hidden">
+      <button id="resetAllBtn" class="hb text-xs bg-rose-900/60 hover:bg-rose-800 text-rose-100 border border-rose-700 px-2.5 py-1.5 rounded-lg transition flex items-center gap-1" title="作図した内容をすべて消して最初の状態に戻します">
         <span>🗑 リセット</span>
       </button>
-      <label class="text-xs bg-emerald-700 hover:bg-emerald-600 text-white border border-emerald-500 px-2.5 py-1.5 rounded-lg transition cursor-pointer flex items-center gap-1" title="住宅配置計画トレーニングで保存したJSON（配置計画・ブロックプラン）を読み込み、間取りの土台にします">
-        <span>🧱 ブロックプラン読込</span>
-        <input type="file" id="importBlockPlanInput" accept=".json" class="hidden">
-      </label>
+      <input type="file" id="importBlockPlanInput" accept=".json" class="hidden">
     </div>
   </header>
 
@@ -5906,6 +5908,30 @@
       showToast("すべての情報をリセットしました", "🗑");
     }
 
+    // 「読込」: 押したあとに「間取り」か「ブロックプラン」を選ぶ
+    function showImportMenu() {
+      if (document.getElementById("importMenuOverlay")) return;
+      const ov = document.createElement("div");
+      ov.id = "importMenuOverlay";
+      ov.style.cssText = "position:fixed;inset:0;z-index:9999;background:rgba(2,6,23,0.7);display:flex;align-items:center;justify-content:center;padding:16px;";
+      const btn = "display:block;width:100%;text-align:left;padding:12px 14px;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;margin-bottom:10px;";
+      ov.innerHTML = `
+        <div role="dialog" aria-modal="true" style="background:#0f172a;border:1px solid #334155;border-radius:14px;padding:20px 22px;max-width:380px;width:100%;color:#e2e8f0;font-family:inherit;box-shadow:0 20px 60px rgba(0,0,0,.6);">
+          <div style="font-size:15px;font-weight:700;margin-bottom:12px;">何を読み込みますか？</div>
+          <button id="importPickMadori" style="${btn}background:#1e293b;border:1px solid #475569;color:#e2e8f0;">📐 間取り<span style="display:block;font-size:11px;font-weight:400;color:#94a3b8;margin-top:3px;">このアプリで「保存」したJSONファイル</span></button>
+          <button id="importPickBlock" style="${btn}background:#047857;border:1px solid #10b981;color:#fff;">🧱 ブロックプランから読み込み<span style="display:block;font-size:11px;font-weight:400;color:#d1fae5;margin-top:3px;">住宅配置計画トレーニングで保存したJSONファイル</span></button>
+          <div style="text-align:right;"><button id="importPickCancel" style="padding:8px 18px;border-radius:8px;background:transparent;border:1px solid #475569;color:#cbd5e1;font-size:13px;font-weight:600;cursor:pointer;">キャンセル</button></div>
+        </div>`;
+      document.body.appendChild(ov);
+      const close = () => { ov.remove(); document.removeEventListener("keydown", onKey, true); };
+      const onKey = (e) => { if (e.key === "Escape") { e.stopPropagation(); close(); } };
+      document.addEventListener("keydown", onKey, true);
+      ov.querySelector("#importPickMadori").addEventListener("click", () => { close(); const i = document.getElementById("importJsonInput"); if (i) { i.value = ""; i.click(); } });
+      ov.querySelector("#importPickBlock").addEventListener("click", () => { close(); const i = document.getElementById("importBlockPlanInput"); if (i) { i.value = ""; i.click(); } });
+      ov.querySelector("#importPickCancel").addEventListener("click", close);
+      ov.addEventListener("click", (e) => { if (e.target === ov) close(); });
+    }
+
     function showResetConfirm() {
       if (document.getElementById("resetConfirmOverlay")) return;
       const ov = document.createElement("div");
@@ -7685,6 +7711,8 @@
       if (exportJsonBtn) exportJsonBtn.addEventListener("click", exportJson);
       const importJsonInput = document.getElementById("importJsonInput");
       if (importJsonInput) importJsonInput.addEventListener("change", importJson);
+      const importMenuBtn = document.getElementById("importMenuBtn");
+      if (importMenuBtn) importMenuBtn.addEventListener("click", showImportMenu);
       const resetAllBtn = document.getElementById("resetAllBtn");
       if (resetAllBtn) resetAllBtn.addEventListener("click", showResetConfirm);
       const importBlockPlanInput = document.getElementById("importBlockPlanInput");
