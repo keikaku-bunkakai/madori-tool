@@ -49,6 +49,8 @@
     /* ---- PC/タブレット: 左は短い名称のグループ見出しのみ。クリックで右側にパーツ一覧を展開 ---- */
     .palette-toggle { width: 100%; display: flex; align-items: center; justify-content: space-between; font-size: 13px; font-weight: 700; color: #cbd5e1; background: #0f172a; border: 1px solid #1e293b; border-radius: 8px; padding: 8px 10px; transition: background .15s; }
     .palette-toggle:hover { background: #1e293b; color: #fff; }
+    /* 右の診断欄を狭くして図面エリアを広く使う */
+    @media (min-width: 768px) { #rightAside { width: 232px; } #tabDiagBtn, #tabMissionBtn { font-size: 11px; padding-left: 4px; padding-right: 4px; line-height: 1.2; } }
     /* ヘッダーのボタン高さ・文字サイズ・余白を統一 */
     header .hb { min-height: 34px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 0 12px; font-size: 12px; line-height: 1; white-space: nowrap; border-radius: 8px; font-weight: 600; }
     header .hseg { min-height: 28px; padding: 0 10px; }
