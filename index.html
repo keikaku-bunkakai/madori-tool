@@ -174,10 +174,10 @@
       <div>
         <h1 class="font-bold text-sm sm:text-base text-white tracking-wide flex items-center gap-2 whitespace-nowrap">
           住宅間取り作成トレーニング <span class="bg-indigo-500/20 text-indigo-400 text-xs px-2 py-0.5 rounded border border-indigo-500/30 font-semibold">Pro v3.0</span>
-          <span id="updateBadge" class="hidden min-[1600px]:inline text-[10px] text-amber-300 whitespace-nowrap font-normal">更新版（2026年11月11日更新）</span>
+          <span id="updateBadge" class="hidden min-[1600px]:inline text-[10px] text-amber-300 whitespace-nowrap font-normal">更新版（2026年11月19日更新）</span>
           <span id="moduleBadge" class="bg-emerald-500/15 text-emerald-300 text-[10px] sm:text-xs px-2 py-0.5 rounded border border-emerald-500/30 font-semibold whitespace-nowrap">尺モジュール 910mm</span>
         </h1>
-        <div class="hidden sm:block min-[1600px]:hidden text-[10px] leading-tight text-amber-300 whitespace-nowrap">更新版（2026年11月11日更新）</div>
+        <div class="hidden sm:block min-[1600px]:hidden text-[10px] leading-tight text-amber-300 whitespace-nowrap">更新版（2026年11月19日更新）</div>
       </div>
     </div>
 
@@ -185,7 +185,7 @@
     <div class="hidden md:flex items-center gap-2">
       <button id="openScenarioBtn" class="hb flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs px-3 py-1.5 rounded-lg transition">
         <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-        <span id="currentScenarioTitle">シナリオ: 自由設計モード</span>
+        <span id="currentScenarioTitle" style="max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:inline-block">シナリオ: 自由設計モード</span>
         <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
       </button>
 
@@ -434,6 +434,8 @@
             <g id="flowGroup" pointer-events="none"></g>
             <g id="ghostGroup"></g>
             <g id="controlsGroup"></g>
+            <g id="sideFloorsGroup"></g>
+            <g id="floorLabelGroup" pointer-events="none"></g>
           </svg>
         </div>
       </div>
@@ -456,7 +458,7 @@
         
         <!-- Score Card -->
         <div class="bg-gradient-to-br from-indigo-900/40 to-slate-900 border border-indigo-500/30 p-3.5 rounded-xl text-center relative overflow-hidden">
-          <div class="text-[11px] text-indigo-300 font-semibold tracking-wider uppercase mb-1">間取り総合評価スコア</div>
+          <div id="scoreCardLabel" class="text-[11px] text-indigo-300 font-semibold tracking-wider uppercase mb-1">間取り総合評価スコア</div>
           <div class="flex items-baseline justify-center gap-1">
             <span id="totalScore" class="text-4xl font-black text-white tracking-tight">0</span>
             <span class="text-sm font-bold text-indigo-400">/ 100 点</span>
@@ -467,7 +469,7 @@
         <!-- Quick Metrics -->
         <div class="grid grid-cols-1 gap-2 text-xs">
           <div class="bg-slate-900 p-2.5 rounded-lg border border-slate-800">
-            <div class="text-slate-500 text-[10px]">総延床面積</div>
+            <div class="text-slate-500 text-[10px]">総延べ面積</div>
             <div id="totalArea" class="font-bold text-slate-200 mt-0.5">0.0 坪 (0 ㎡)</div>
           </div>
         </div>
@@ -589,6 +591,42 @@
       </div>
 
       <div class="space-y-2 max-h-80 overflow-y-auto custom-scrollbar pr-1" id="scenarioList"></div>
+
+      <div class="border-t border-slate-800 pt-3 space-y-2">
+        <div class="text-[11px] font-semibold text-amber-300">📨 先生から配布された課題を読み込む</div>
+        <div class="grid grid-cols-2 gap-2">
+          <button id="asgFileBtn" class="bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold py-2.5 rounded-lg border border-amber-400">📂 課題ファイル(.json)</button>
+          <button id="asgCodeBtn" class="bg-slate-800 hover:bg-slate-700 text-amber-200 text-xs font-bold py-2.5 rounded-lg border border-amber-500/50">🔑 課題コードを貼り付け</button>
+        </div>
+        <input type="file" id="asgFileInput" accept=".json,application/json,text/plain" class="hidden">
+      </div>
+    </div>
+  </div>
+
+  <!-- 課題コード入力 -->
+  <div id="asgCodeModal" class="fixed inset-0 bg-slate-950/80 z-[60] flex items-center justify-center p-4 hidden">
+    <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-md w-full p-5 shadow-2xl space-y-3">
+      <h3 class="font-bold text-sm text-white">🔑 課題コードを貼り付け</h3>
+      <textarea id="asgCodeText" rows="5" placeholder="MADORI-KADAI1:..." class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-xs text-slate-200" style="font-family:monospace"></textarea>
+      <div id="asgCodeErr" class="text-xs text-rose-400"></div>
+      <div class="grid grid-cols-2 gap-2">
+        <button id="asgCodeCancel" class="bg-slate-800 text-slate-200 text-xs font-bold py-2.5 rounded-lg border border-slate-600">キャンセル</button>
+        <button id="asgCodeOk" class="bg-amber-600 text-white text-xs font-bold py-2.5 rounded-lg border border-amber-400">読み込む</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 課題読込時の確認(現在の間取りの扱い) -->
+  <div id="asgAskModal" class="fixed inset-0 bg-slate-950/80 z-[60] flex items-center justify-center p-4 hidden">
+    <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-md w-full p-5 shadow-2xl space-y-3">
+      <h3 class="font-bold text-sm text-white">この課題で設計を始めますか？</h3>
+      <div id="asgAskInfo" class="text-xs text-slate-300 leading-relaxed"></div>
+      <div class="text-[11px] text-slate-400">課題の敷地・階数に切り替わります。いま作図中の間取りがあります。</div>
+      <div class="space-y-2">
+        <button id="asgAskClear" class="w-full bg-amber-600 text-white text-xs font-bold py-2.5 rounded-lg border border-amber-400">間取りをクリアして課題を始める</button>
+        <button id="asgAskKeep" class="w-full bg-slate-800 text-slate-100 text-xs font-bold py-2.5 rounded-lg border border-slate-600">いまの間取りを残して課題を設定する</button>
+        <button id="asgAskCancel" class="w-full bg-slate-900 text-slate-400 text-xs font-bold py-2.5 rounded-lg border border-slate-700">キャンセル</button>
+      </div>
     </div>
   </div>
 
@@ -930,8 +968,11 @@
       STAIRS: { name: "階段", bg: "#e11d48", border: "#be123c", text: "#ffffff", defaultW: 2, defaultH: 2, icon: "🪜" },
       BALCONY: { name: "バルコニー", bg: "#84cc16", border: "#65a30d", text: "#ffffff", defaultW: 4, defaultH: 1, icon: "☀️" },
       CLOSET: { name: "収納", bg: "#8b5cf6", border: "#7c3aed", text: "#ffffff", defaultW: 2, defaultH: 1, icon: "📦" },
-      OSHIIRE: { name: "押入", bg: "#7c3aed", border: "#6d28d9", text: "#ffffff", defaultW: 2, defaultH: 1, icon: "🗄️" }
+      OSHIIRE: { name: "押入", bg: "#7c3aed", border: "#6d28d9", text: "#ffffff", defaultW: 2, defaultH: 1, icon: "🗄️" },
+      // 吹き抜け: 2階以上でのみ選べる。床面積には含めず、1つ下の階に破線で「上部吹き抜け」と表示する
+      VOID: { name: "吹き抜け", bg: "#bae6fd", border: "#0284c7", text: "#0c4a6e", defaultW: 2, defaultH: 2, icon: "🕳️" }
     };
+    function isVoidType(t) { return t === "VOID"; }
 
     // --- EXTERIOR (外構) PARTS DEFINITIONS & PALETTE DATA ---
     const EXTERIOR_TYPES = {
@@ -965,7 +1006,7 @@
     }
 
     // Exterior (外構) parts are not part of the building envelope, so they are excluded
-    // from 延床面積 / 建蔽率 / 容積率 calculations.
+    // from 延べ面積 / 建蔽率 / 容積率 calculations.
     // 階段パーツを配置した場合、その上階(存在する場合)に最初から同じ位置・同じ大きさで複製する
     function syncStairsToUpperFloors(room) {
       if (!room || room.type !== "STAIRS" || appState.maxFloor <= room.floor) return;
@@ -1083,7 +1124,7 @@
       {
         id: "family_standard",
         title: "課題1: 4人家族の標準住宅",
-        desc: "夫婦＋子ども2人のための延床30〜35坪の2階建て住宅。明るいLDKと機能的な水回り動線を確保してください。",
+        desc: "夫婦＋子ども2人のための延べ30〜35坪の2階建て住宅。明るいLDKと機能的な水回り動線を確保してください。",
         targetArea: { min: 28, max: 36 },
         floors: 2,
         reqs: [
@@ -1128,11 +1169,14 @@
       currentFloor: 1,
       maxFloor: 1, // 有効なフロア数 (1〜3)。デフォルトは1階のみ表示、「2階以上を設定」で増やす
       selectedScenarioId: "free",
+      assignment: null, // 先生から配布された課題(課題設定アプリの出力)
       showSizeLabel: true,
       showHalfGrid: false,
       rooms: [], 
       selectedRoomId: null,
       multiSelectedRoomIds: [],
+      sideFloors: [],
+      sideGap: 24,
       fittings: [],
       selectedFittingId: null,
       multiSelectedFittingIds: [],
@@ -2095,6 +2139,12 @@
       // 複製されている状態を毎回のレンダリング前に保証する(既にあれば何もしない)
       ensureStairsSyncedAcrossFloors();
 
+      // 吹き抜けパーツは2階以上を選んでいる時だけ選べる
+      const voidBtn = document.querySelector('#roomPaletteList [data-paintkey="VOID"]');
+      if (voidBtn) voidBtn.style.display = appState.currentFloor >= 2 ? "" : "none";
+      if (!__sideRender && appState.currentFloor < 2 && typeof paintTargetType !== "undefined" && paintTargetType === "VOID" && currentDrawMode === "paint") setDrawMode("none");
+      const labelBoxes = [];
+
       underlayGroup.innerHTML = "";
       siteGroup.innerHTML = "";
       roomsGroup.innerHTML = "";
@@ -2196,11 +2246,16 @@
         const nameStr = def.name.split(" ")[0];
         const sizeStr = `${formatJyoDisplay(jyo)}畳 (${jyoToSqm(jyo).toFixed(1)}㎡)`;
         const laterRooms = currentRooms.slice(currentRooms.indexOf(room) + 1);
-        const lay = computeRoomLabelLayout(room, laterRooms, nameStr, sizeStr, appState.showSizeLabel, baseTitleSize, baseSubSize);
+        const lay = computeRoomLabelLayout(room, laterRooms, nameStr, sizeStr, appState.showSizeLabel && !isVoidType(room.type), baseTitleSize, baseSubSize);
         const centerX = lay.cx, centerY = lay.cy;
         const titleFontSize = lay.titleSize, subFontSize = lay.subSize;
         const showSize = lay.showSize;
         const lineGap = 2;
+        {
+          const nw = textUnits(nameStr) * titleFontSize, sw = showSize ? textUnits(sizeStr) * subFontSize : 0;
+          const bw = Math.max(nw, sw), bh = showSize ? titleFontSize + subFontSize + lineGap : titleFontSize;
+          labelBoxes.push({ x: centerX - bw / 2, y: centerY - bh / 2, w: bw, h: bh });
+        }
 
         const textGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
         textGroup.setAttribute("pointer-events", "none");
@@ -2214,7 +2269,7 @@
         nameText.setAttribute("font-weight", "bold");
         nameText.setAttribute("text-anchor", "middle");
         nameText.setAttribute("dominant-baseline", "central");
-        nameText.style.textShadow = "0px 1px 3px rgba(0,0,0,0.8)";
+        nameText.style.textShadow = isVoidType(room.type) ? "none" : "0px 1px 3px rgba(0,0,0,0.8)";
         nameText.textContent = nameStr;
         textGroup.appendChild(nameText);
 
@@ -2320,6 +2375,55 @@
         }
       });
 
+      // 上の階の吹き抜け: この階に破線で囲い「上部吹き抜け」と小さく表示(室名の文字は避ける)
+      appState.rooms.filter(r => r.floor === appState.currentFloor + 1 && isVoidType(r.type)).forEach(vr => {
+        const NS = "http://www.w3.org/2000/svg";
+        const vg = document.createElementNS(NS, "g");
+        vg.setAttribute("pointer-events", "none");
+        const d = roomOutlineLoops(vr).map(loop => "M" + loop.map(v => `${v.x * GRID_SIZE},${v.y * GRID_SIZE}`).join(" L") + " Z").join(" ");
+        const fillP = document.createElementNS(NS, "path");
+        fillP.setAttribute("d", d); fillP.setAttribute("fill", "rgba(186,230,253,0.16)"); fillP.setAttribute("fill-rule", "evenodd");
+        vg.appendChild(fillP);
+        const halo = document.createElementNS(NS, "path");
+        halo.setAttribute("d", d); halo.setAttribute("fill", "none"); halo.setAttribute("stroke", "rgba(2,6,23,0.65)"); halo.setAttribute("stroke-width", "4");
+        vg.appendChild(halo);
+        const dash = document.createElementNS(NS, "path");
+        dash.setAttribute("d", d); dash.setAttribute("fill", "none"); dash.setAttribute("stroke", "#e0f2fe"); dash.setAttribute("stroke-width", "2"); dash.setAttribute("stroke-dasharray", "6 4");
+        vg.appendChild(dash);
+        // ラベル位置: 吹き抜けの範囲内で、室名ラベルと重ならない場所を探す(入らなければ文字をさらに小さく)
+        const half = roomHalfCells(vr), HP = GRID_SIZE / 2, str = "上部吹き抜け";
+        let cxs = 0, cys = 0, cnt = 0;
+        half.forEach(k => { const [i, j] = k.split(",").map(Number); cxs += (i + 0.5) * HP; cys += (j + 0.5) * HP; cnt++; });
+        const mx = cnt ? cxs / cnt : 0, my = cnt ? cys / cnt : 0;
+        let spot = null;
+        for (const fs of [9, 8, 7, 6]) {
+          const w = textUnits(str) * fs + 4, h = fs + 3;
+          let best = null;
+          half.forEach(k => {
+            const [i, j] = k.split(",").map(Number);
+            const cx = (i + 0.5) * HP, cy = (j + 0.5) * HP;
+            const x0 = cx - w / 2, y0 = cy - h / 2;
+            for (let yy = Math.floor(y0 / HP); yy <= Math.floor((y0 + h - 0.01) / HP); yy++)
+              for (let xx = Math.floor(x0 / HP); xx <= Math.floor((x0 + w - 0.01) / HP); xx++)
+                if (!half.has(`${xx},${yy}`)) return;
+            if (labelBoxes.some(b => x0 < b.x + b.w + 2 && x0 + w > b.x - 2 && y0 < b.y + b.h + 2 && y0 + h > b.y - 2)) return;
+            const dist = Math.hypot(cx - mx, cy - my);
+            if (!best || dist < best.dist) best = { cx, cy, dist, fs };
+          });
+          if (best) { spot = best; break; }
+        }
+        if (spot) {
+          const t = document.createElementNS(NS, "text");
+          t.setAttribute("x", spot.cx); t.setAttribute("y", spot.cy);
+          t.setAttribute("font-size", spot.fs); t.setAttribute("font-weight", "bold");
+          t.setAttribute("text-anchor", "middle"); t.setAttribute("dominant-baseline", "central");
+          t.setAttribute("fill", "#e0f2fe"); t.setAttribute("stroke", "rgba(2,6,23,0.85)"); t.setAttribute("stroke-width", "2.2"); t.setAttribute("paint-order", "stroke");
+          t.textContent = str;
+          vg.appendChild(t);
+        }
+        (roomLabelsGroup || roomsGroup).appendChild(vg);
+      });
+
       // 壁: 外周線を全パーツ分まとめて描く。縁取りを先に全部描き、その上に白を重ねるので、
       // 隣接する部屋どうしの境界の壁は1本に融合する
       if (wallsGroupEl) {
@@ -2346,7 +2450,187 @@
       renderFittings();
       renderEquipment();
       renderFlowLines();
-      evaluateLayout();
+      if (!__sideRender) {
+        evaluateLayout();
+        renderSideFloors();
+      }
+    }
+
+    // --- 並べて表示: 1階の隣などに他の階の間取りを参照用(読み取り専用)で並べる ---
+    // 作図できるのは選択中の階(左端のパネル)だけ。右に並ぶ階は敷地まわりだけを切り出して近づけて表示し、
+    // 境目の「⇔」つまみをドラッグすると間隔を調整できる(引き寄せられる)。
+    let __sideRender = false;
+    let __mainRight = null;      // 並べて表示中、作図できる範囲の右端(px)。null=全面
+    let __sidePanels = [];
+    let __sideWin = { x0: 0, w: 0 };
+    function currentCanvasW() {
+      return (planSvg && Number(planSvg.getAttribute("width"))) || CANVAS_W;
+    }
+    function outsideMainPanel(e) {
+      if (!planSvg || __mainRight === null) return false;
+      const r = planSvg.getBoundingClientRect();
+      return (e.clientX - r.left) / (appState.zoomLevel || 1) > __mainRight;
+    }
+    function addFloorLabel(parent, offsetX, floor, editing) {
+      const NS = "http://www.w3.org/2000/svg";
+      const g = document.createElementNS(NS, "g");
+      g.setAttribute("transform", `translate(${offsetX},0)`);
+      const txt = `${floor}階 ${editing ? "・編集中" : "・参照のみ"}`;
+      const w = 20 + textUnits(txt) * 16;
+      const r = document.createElementNS(NS, "rect");
+      r.setAttribute("x", 12); r.setAttribute("y", CANVAS_H - 42); r.setAttribute("width", w); r.setAttribute("height", 30); r.setAttribute("rx", 8);
+      r.setAttribute("fill", editing ? "#4f46e5" : "#334155"); r.setAttribute("stroke", editing ? "#a5b4fc" : "#64748b"); r.setAttribute("opacity", "0.95");
+      g.appendChild(r);
+      const t = document.createElementNS(NS, "text");
+      t.setAttribute("x", 22); t.setAttribute("y", CANVAS_H - 27);
+      t.setAttribute("font-size", 16); t.setAttribute("font-weight", "bold"); t.setAttribute("fill", "#ffffff"); t.setAttribute("dominant-baseline", "central");
+      t.textContent = txt;
+      g.appendChild(t);
+      parent.appendChild(g);
+      return g;
+    }
+    // 参照パネルの位置(間隔)を反映する
+    function layoutSidePanels() {
+      if (__mainRight === null || !__sidePanels.length) return;
+      const gap = appState.sideGap;
+      const pw = __sideWin.w;
+      __sidePanels.forEach((p, k) => {
+        const X = __mainRight + gap + k * (pw + gap);
+        p.g.setAttribute("transform", `translate(${X - __sideWin.x0},0)`);
+        p.label.setAttribute("transform", `translate(${X},0)`);
+        p.handle.setAttribute("transform", `translate(${X - 9},0)`);
+      });
+      const total = __mainRight + gap + __sidePanels.length * (pw + gap);
+      if (Math.abs(currentCanvasW() - total) > 0.5) {
+        planSvg.setAttribute("width", total);
+        planSvg.setAttribute("viewBox", `0 0 ${total} ${CANVAS_H}`);
+        layoutCanvasWrapper();
+      }
+      const cov = document.getElementById("sideCover");
+      if (cov) cov.setAttribute("width", Math.max(0, total - __mainRight));
+    }
+    function startSideGapDrag(e) {
+      e.preventDefault(); e.stopPropagation();
+      const pt = ev => (ev.touches && ev.touches[0]) ? ev.touches[0] : ev;
+      const x0 = pt(e).clientX, g0 = appState.sideGap, z = appState.zoomLevel || 1;
+      const mv = ev => {
+        ev.preventDefault();
+        appState.sideGap = Math.max(-140, Math.min(600, g0 + (pt(ev).clientX - x0) / z));
+        layoutSidePanels();
+      };
+      const up = () => {
+        window.removeEventListener("mousemove", mv); window.removeEventListener("mouseup", up);
+        window.removeEventListener("touchmove", mv); window.removeEventListener("touchend", up); window.removeEventListener("touchcancel", up);
+      };
+      window.addEventListener("mousemove", mv); window.addEventListener("mouseup", up);
+      window.addEventListener("touchmove", mv, { passive: false }); window.addEventListener("touchend", up); window.addEventListener("touchcancel", up);
+    }
+    function renderSideFloors() {
+      const NS = "http://www.w3.org/2000/svg";
+      const sg = document.getElementById("sideFloorsGroup"), lg = document.getElementById("floorLabelGroup");
+      if (!sg || !lg || !planSvg) return;
+      sg.innerHTML = ""; lg.innerHTML = ""; __sidePanels = [];
+      const cur = appState.currentFloor;
+      const list = (appState.sideFloors || []).filter(f => f !== cur && f >= 1 && f <= appState.maxFloor).sort((a, b) => a - b);
+      if (!list.length) {
+        __mainRight = null;
+        if (currentCanvasW() !== CANVAS_W) {
+          planSvg.setAttribute("width", CANVAS_W);
+          planSvg.setAttribute("viewBox", `0 0 ${CANVAS_W} ${CANVAS_H}`);
+          layoutCanvasWrapper();
+        }
+        addFloorLabel(lg, 0, cur, true);
+        return;
+      }
+      if (typeof appState.sideGap !== "number") appState.sideGap = 24;
+      // 敷地(と周囲の道路・寸法線)が収まる範囲だけを切り出して並べる
+      const st = appState.site;
+      const sx = (st.offsetX || 0) * GRID_SIZE, sw = (st.width || 12) * GRID_SIZE;
+      const wx0 = Math.max(0, sx - 96), wx1 = Math.min(CANVAS_W, sx + sw + 120);
+      __sideWin = { x0: wx0, w: wx1 - wx0 };
+      __mainRight = wx1;
+      addFloorLabel(lg, 0, cur, true);
+      const keep = {
+        sel: appState.selectedRoomId, selF: appState.selectedFittingId, selE: appState.selectedEquipmentId,
+        mr: appState.multiSelectedRoomIds, mf: appState.multiSelectedFittingIds, me: appState.multiSelectedEquipmentIds, fd: flowDraft
+      };
+      __sideRender = true;
+      try {
+        appState.selectedRoomId = null; appState.selectedFittingId = null; appState.selectedEquipmentId = null;
+        appState.multiSelectedRoomIds = []; appState.multiSelectedFittingIds = []; appState.multiSelectedEquipmentIds = []; flowDraft = null;
+        // 作図範囲の右側は、並べた階で覆う(元の図面が透けないように下地を敷く)
+        const cov = document.createElementNS(NS, "rect");
+        cov.setAttribute("id", "sideCover"); cov.setAttribute("x", __mainRight); cov.setAttribute("y", 0);
+        cov.setAttribute("width", 10); cov.setAttribute("height", CANVAS_H); cov.setAttribute("fill", "#020617"); cov.setAttribute("pointer-events", "all");
+        sg.appendChild(cov);
+        const defs = planSvg.querySelector("defs");
+        list.forEach((f, k) => {
+          appState.currentFloor = f;
+          render();
+          const cid = "sideClip" + k;
+          let cp = document.getElementById(cid);
+          if (cp) cp.remove();
+          cp = document.createElementNS(NS, "clipPath"); cp.setAttribute("id", cid);
+          const cr = document.createElementNS(NS, "rect");
+          cr.setAttribute("x", wx0); cr.setAttribute("y", 0); cr.setAttribute("width", wx1 - wx0); cr.setAttribute("height", CANVAS_H);
+          cp.appendChild(cr); defs.appendChild(cp);
+          const g = document.createElementNS(NS, "g");
+          const bg0 = document.createElementNS(NS, "rect");
+          bg0.setAttribute("x", wx0); bg0.setAttribute("width", wx1 - wx0); bg0.setAttribute("height", CANVAS_H); bg0.setAttribute("fill", "#020617");
+          g.appendChild(bg0);
+          const inner = document.createElementNS(NS, "g");
+          inner.setAttribute("clip-path", `url(#${cid})`);
+          const bg = document.createElementNS(NS, "rect");
+          bg.setAttribute("width", CANVAS_W); bg.setAttribute("height", CANVAS_H); bg.setAttribute("fill", "url(#gridPatternMajor)");
+          inner.appendChild(bg);
+          ["siteGroup", "roomsGroup", "wallsGroup", "equipmentGroup", "roomLabelsGroup", "fittingsGroup", "flowGroup"].forEach(id => {
+            const src = document.getElementById(id);
+            if (!src) return;
+            const c = src.cloneNode(true);
+            c.removeAttribute("id");
+            c.setAttribute("pointer-events", "none");
+            inner.appendChild(c);
+          });
+          g.appendChild(inner);
+          const cover = document.createElementNS(NS, "rect");
+          cover.setAttribute("x", wx0); cover.setAttribute("width", wx1 - wx0); cover.setAttribute("height", CANVAS_H); cover.setAttribute("fill", "transparent");
+          cover.setAttribute("pointer-events", "all");
+          g.appendChild(cover);
+          const frame = document.createElementNS(NS, "rect");
+          frame.setAttribute("x", wx0); frame.setAttribute("width", wx1 - wx0); frame.setAttribute("height", CANVAS_H); frame.setAttribute("fill", "none");
+          frame.setAttribute("stroke", "#64748b"); frame.setAttribute("stroke-width", "2"); frame.setAttribute("pointer-events", "none");
+          g.appendChild(frame);
+          sg.appendChild(g);
+          const lab = addFloorLabel(lg, 0, f, false);
+          // 左端の境目つまみ(ドラッグで間隔を調整)
+          const h = document.createElementNS(NS, "g");
+          h.style.cursor = "ew-resize";
+          const hb = document.createElementNS(NS, "rect");
+          hb.setAttribute("x", 0); hb.setAttribute("y", CANVAS_H / 2 - 44); hb.setAttribute("width", 18); hb.setAttribute("height", 88); hb.setAttribute("rx", 9);
+          hb.setAttribute("fill", "#f59e0b"); hb.setAttribute("stroke", "#0f172a"); hb.setAttribute("stroke-width", "2");
+          h.appendChild(hb);
+          const ht = document.createElementNS(NS, "text");
+          ht.setAttribute("x", 9); ht.setAttribute("y", CANVAS_H / 2); ht.setAttribute("text-anchor", "middle"); ht.setAttribute("dominant-baseline", "central");
+          ht.setAttribute("font-size", 14); ht.setAttribute("font-weight", "bold"); ht.setAttribute("fill", "#1c1917"); ht.setAttribute("pointer-events", "none");
+          ht.textContent = "⇔";
+          h.appendChild(ht);
+          const hz = document.createElementNS(NS, "rect"); // 触りやすい当たり判定
+          hz.setAttribute("x", -14); hz.setAttribute("y", CANVAS_H / 2 - 56); hz.setAttribute("width", 46); hz.setAttribute("height", 112); hz.setAttribute("fill", "transparent");
+          h.appendChild(hz);
+          h.addEventListener("mousedown", startSideGapDrag);
+          h.addEventListener("touchstart", startSideGapDrag, { passive: false });
+          h.setAttribute("title", "ドラッグで階どうしの間隔を調整");
+          sg.appendChild(h);
+          __sidePanels.push({ g, label: lab, handle: h });
+        });
+      } finally {
+        appState.currentFloor = cur;
+        appState.selectedRoomId = keep.sel; appState.selectedFittingId = keep.selF; appState.selectedEquipmentId = keep.selE;
+        appState.multiSelectedRoomIds = keep.mr; appState.multiSelectedFittingIds = keep.mf; appState.multiSelectedEquipmentIds = keep.me; flowDraft = keep.fd;
+        render(); // 選択中の階を描き直す(__sideRender中なので再帰しない)
+        __sideRender = false;
+      }
+      layoutSidePanels();
     }
 
     // --- FITTINGS (建具) RENDERING ---
@@ -3233,7 +3517,7 @@
       let floor1Cells = 0;
 
       appState.rooms.forEach(r => {
-        if (isExteriorType(r.type)) return; // 外構パーツは床面積に含めない
+        if (isExteriorType(r.type) || isVoidType(r.type)) return; // 外構・吹き抜けは床面積に含めない
 
         let count = 0;
         if (r.cells) count = cellArea(r.cells);
@@ -3256,6 +3540,10 @@
       const siteAreaTsubo = cellsToTsubo(siteAreaGrid).toFixed(1);
       const siteAreaSqm = cellsToSqm(siteAreaGrid).toFixed(1);
 
+      const asg = (appState.selectedScenarioId === "assignment" && appState.assignment) ? appState.assignment : null;
+      const asgCond = asg ? (asg.conditions || {}) : {};
+      const KLIM = (asgCond.kenpei && typeof asgCond.kenpei.max === "number") ? asgCond.kenpei.max : 60;
+      const YLIM = (asgCond.yoseki && typeof asgCond.yoseki.max === "number") ? asgCond.yoseki.max : 200;
       const kenpeiPct = siteAreaGrid > 0 ? Math.round((floor1Cells / siteAreaGrid) * 1000) / 10 : 0;
       const yosekiPct = siteAreaGrid > 0 ? Math.round((totalCells / siteAreaGrid) * 1000) / 10 : 0;
 
@@ -3287,11 +3575,11 @@
       if (siteAreaValEl) siteAreaValEl.textContent = `${siteAreaTsubo}坪 (${siteAreaSqm}㎡)`;
       if (kenpeiValEl) {
         kenpeiValEl.textContent = `${kenpeiPct}%`;
-        kenpeiValEl.className = kenpeiPct > 60 ? "font-bold text-rose-400 ml-1" : "font-bold text-emerald-400 ml-1";
+        kenpeiValEl.className = kenpeiPct > KLIM ? "font-bold text-rose-400 ml-1" : "font-bold text-emerald-400 ml-1";
       }
       if (yosekiValEl) {
         yosekiValEl.textContent = `${yosekiPct}%`;
-        yosekiValEl.className = yosekiPct > 200 ? "font-bold text-rose-400 ml-1" : "font-bold text-emerald-400 ml-1";
+        yosekiValEl.className = yosekiPct > YLIM ? "font-bold text-rose-400 ml-1" : "font-bold text-emerald-400 ml-1";
       }
       if (overflowValEl) {
         overflowValEl.textContent = isOverflow ? "⚠️ はみ出しあり" : "OK";
@@ -3313,7 +3601,18 @@
         structScore = checkStairsAligned(appState) ? 90 : 40;
       }
 
-      const totalScoreVal = appState.rooms.length === 0 ? 0 : Math.round((daylightScore + flowScore + structScore) / 3);
+      const scenarioNow = SCENARIOS.find(s => s.id === appState.selectedScenarioId);
+      let asgResult = null, reqItems = null;
+      let totalScoreVal = appState.rooms.length === 0 ? 0 : Math.round((daylightScore + flowScore + structScore) / 3);
+      if (asg) {
+        asgResult = evaluateAssignment(asg, { kenpeiPct, yosekiPct, totalSqm, siteSqm: cellsToSqm(siteAreaGrid), isOverflow, daylightResult, flowEval });
+        totalScoreVal = appState.rooms.length === 0 ? 0 : asgResult.score;
+      } else if (scenarioNow && scenarioNow.reqs.length) {
+        reqItems = scenarioNow.reqs.map(rq => ({ text: rq.text, passed: !!rq.check(appState) }));
+        totalScoreVal = appState.rooms.length === 0 ? 0 : Math.round(reqItems.filter(i => i.passed).length / reqItems.length * 100);
+      }
+      const scoreLabelEl = document.getElementById("scoreCardLabel");
+      if (scoreLabelEl) scoreLabelEl.textContent = (asg || reqItems) ? "課題条件の達成スコア" : "間取り総合評価スコア";
 
       const totalScoreEl = document.getElementById("totalScore");
       if (totalScoreEl) totalScoreEl.textContent = totalScoreVal;
@@ -3334,8 +3633,13 @@
       if (proAdviceText) {
         if (isOverflow) {
           proAdviceText.textContent = "⚠️ 建物の一部が敷地境界線からはみ出しています！配置を敷地内に調整するか、敷地サイズを拡張してください。";
-        } else if (kenpeiPct > 60) {
-          proAdviceText.textContent = "⚠️ 建蔽率（1階の建築面積）が60%を超えています。部屋の広さを調整するか、2階を活用しましょう。";
+        } else if (kenpeiPct > KLIM) {
+          proAdviceText.textContent = `⚠️ 建蔽率（1階の建築面積）が${KLIM}%を超えています。部屋の広さを調整するか、2階を活用しましょう。`;
+        } else if (asgResult && appState.rooms.length > 0) {
+          const bad = asgResult.items.filter(i => i.frac < 1);
+          proAdviceText.textContent = bad.length === 0
+            ? "🎉 課題の条件をすべて満たしています！"
+            : `💡 未達成の条件: ${bad.slice(0, 3).map(i => i.label).join("／")}${bad.length > 3 ? ` ほか${bad.length - 3}件` : ""}（詳しくは「課題達成度」タブ）`;
         } else if (appState.rooms.length === 0) {
           proAdviceText.textContent = "まずは左側の部屋パーツを選んでキャンバスに配置してみましょう！";
         } else if (daylightScore < 50) {
@@ -3349,26 +3653,177 @@
         }
       }
 
-      // Check Scenario Requirements
-      const scenario = SCENARIOS.find(s => s.id === appState.selectedScenarioId);
+      // 課題・シナリオの達成状況
       const missionChecklist = document.getElementById("missionChecklist");
-      if (scenario && missionChecklist) {
-        missionChecklist.innerHTML = "";
-        if (scenario.reqs.length === 0) {
-          missionChecklist.innerHTML = '<p class="text-xs text-slate-500">自由設計モードに特定の達成条件はありません。</p>';
-        } else {
-          scenario.reqs.forEach(req => {
-            const passed = req.check(appState);
-            const item = document.createElement("div");
-            item.className = `flex items-center gap-2 text-xs p-2 rounded-lg border ${passed ? 'bg-emerald-950/40 border-emerald-500/40 text-emerald-300' : 'bg-slate-900 border-slate-800 text-slate-400'}`;
-            item.innerHTML = `
-              <span>${passed ? '✅' : '⚪'}</span>
-              <span class="${passed ? 'font-semibold text-white' : ''}">${req.text}</span>
-            `;
-            missionChecklist.appendChild(item);
-          });
+      const missionHeader = document.getElementById("missionHeader");
+      const missionBadge = document.getElementById("missionBadge");
+      const esc = t => String(t == null ? "" : t).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+      if (missionHeader) {
+        if (asg) {
+          missionHeader.innerHTML = `<h3 class="font-bold text-sm text-white">📨 ${esc(asg.title)}</h3>` +
+            (asg.description ? `<p class="text-xs text-slate-400 leading-relaxed" style="white-space:pre-wrap">${esc(asg.description)}</p>` : "") +
+            (asg.author ? `<p class="text-[10px] text-slate-500">出題: ${esc(asg.author)}</p>` : "");
+        } else if (scenarioNow) {
+          missionHeader.innerHTML = `<h3 class="font-bold text-sm text-white">${esc(scenarioNow.title)}</h3><p class="text-xs text-slate-400 leading-relaxed">${esc(scenarioNow.desc)}</p>`;
         }
       }
+      if (missionBadge) {
+        if (asgResult) {
+          const done = asgResult.items.filter(i => i.frac >= 1).length;
+          missionBadge.textContent = `${done}/${asgResult.items.length}`;
+        } else if (reqItems) {
+          missionBadge.textContent = `${reqItems.filter(i => i.passed).length}/${reqItems.length}`;
+        } else missionBadge.textContent = "自由";
+      }
+      if (missionChecklist) {
+        missionChecklist.innerHTML = "";
+        if (asgResult) {
+          const sum = document.createElement("div");
+          sum.className = "text-xs text-amber-300 font-bold px-1";
+          sum.textContent = `獲得 ${asgResult.got} / ${asgResult.max} 点 → スコア ${asgResult.score}点`;
+          missionChecklist.appendChild(sum);
+          asgResult.items.forEach(it => {
+            const ok = it.frac >= 1, part = it.frac > 0 && it.frac < 1;
+            const item = document.createElement("div");
+            item.className = `text-xs p-2 rounded-lg border space-y-0.5 ${ok ? 'bg-emerald-950/40 border-emerald-500/40 text-emerald-300' : part ? 'bg-amber-950/30 border-amber-500/40 text-amber-200' : 'bg-slate-900 border-slate-800 text-slate-400'}`;
+            item.innerHTML = `<div class="flex items-center justify-between gap-2"><span>${ok ? '✅' : part ? '🔶' : '⚪'} <span class="${ok ? 'font-semibold text-white' : ''}">${esc(it.label)}</span></span><span class="shrink-0 font-bold">${Math.round(it.pts * it.frac * 10) / 10}/${it.pts}点</span></div><div class="text-[10px] opacity-80">${esc(it.detail)}</div>`;
+            missionChecklist.appendChild(item);
+          });
+        } else if (reqItems) {
+          reqItems.forEach(req => {
+            const item = document.createElement("div");
+            item.className = `flex items-center gap-2 text-xs p-2 rounded-lg border ${req.passed ? 'bg-emerald-950/40 border-emerald-500/40 text-emerald-300' : 'bg-slate-900 border-slate-800 text-slate-400'}`;
+            item.innerHTML = `<span>${req.passed ? '✅' : '⚪'}</span><span class="${req.passed ? 'font-semibold text-white' : ''}">${req.text}</span>`;
+            missionChecklist.appendChild(item);
+          });
+        } else {
+          missionChecklist.innerHTML = '<p class="text-xs text-slate-500">自由設計モードに特定の達成条件はありません。</p>';
+        }
+      }
+    }
+
+    // ===== 課題(先生が設定した設計条件)の採点 =====
+    function asgRoomCells(r) {
+      if (r.cells) return cellArea(r.cells);
+      if (r.customJyo) return r.customJyo * 2;
+      return r.w * r.h;
+    }
+    function evaluateAssignment(a, m) {
+      const c = a.conditions || {};
+      const items = [];
+      const add = (label, pts, frac, detail) => items.push({ label, pts: pts || 0, frac: Math.max(0, Math.min(1, frac)), detail });
+      const real = appState.rooms.filter(r => !isExteriorType(r.type) && !isVoidType(r.type));
+      if (c.fitSite) add("建物が敷地内におさまっている", c.fitSite.points, (!real.length || m.isOverflow) ? 0 : 1, !real.length ? "部屋が未配置です" : m.isOverflow ? "敷地境界・後退部分からはみ出しています" : "OK");
+      if (c.kenpei) add(`建蔽率 ${c.kenpei.max}%以下`, c.kenpei.points, real.length && m.kenpeiPct <= c.kenpei.max ? 1 : 0, `現在 ${m.kenpeiPct}%`);
+      if (c.yoseki) add(`容積率 ${c.yoseki.max}%以下`, c.yoseki.points, real.length && m.yosekiPct <= c.yoseki.max ? 1 : 0, `現在 ${m.yosekiPct}%`);
+      if (c.totalArea) {
+        // 上限は容積率の上限から決まる面積(実際の有効敷地面積ベース)を超えない
+        let hi = c.totalArea.maxSqm;
+        if (c.yoseki && typeof c.yoseki.max === "number") hi = Math.min(hi, m.siteSqm * c.yoseki.max / 100);
+        hi = Math.round(hi * 10) / 10;
+        let lo = c.totalArea.minPct != null ? Math.round(hi * c.totalArea.minPct) / 100 : c.totalArea.minSqm;
+        lo = Math.min(lo, hi);
+        const ok = real.length && m.totalSqm >= lo && m.totalSqm <= hi;
+        add(`延べ面積 ${Math.round(lo * 10) / 10}〜${hi}㎡`, c.totalArea.points, ok ? 1 : 0, `現在 ${m.totalSqm}㎡`);
+      }
+      if (c.floors) {
+        const top = real.reduce((mx, r) => Math.max(mx, r.floor || 1), 0);
+        add(`${c.floors.count}階建て`, c.floors.points, top === c.floors.count ? 1 : 0, real.length ? `現在 ${top}階建て` : "部屋が未配置です");
+      }
+      if (c.parking) {
+        const n = appState.rooms.filter(r => r.type === "PARKING").length;
+        add(`駐車 ${c.parking.cars}台分`, c.parking.points, n / c.parking.cars, `駐車スペース ${n}台分`);
+      }
+      (c.rooms || []).forEach(rq => {
+        const name = (ROOM_TYPES[rq.type] && ROOM_TYPES[rq.type].name) || rq.type;
+        const hit = real.filter(r => r.type === rq.type && (!rq.floor || (r.floor || 1) === rq.floor) && (!rq.minJyo || asgRoomCells(r) / 2 >= rq.minJyo - 0.001));
+        const label = `${rq.floor ? rq.floor + "階に" : ""}${name}${rq.count > 1 ? " ×" + rq.count : ""}${rq.minJyo ? `（${rq.minJyo}帖以上）` : ""}`;
+        add(label, rq.points, Math.min(rq.count, hit.length) / rq.count, `条件に合う室 ${hit.length}/${rq.count}`);
+      });
+      if (c.lifeFlow) {
+        const f = m.flowEval.life;
+        add(`生活動線 ${c.lifeFlow.minScore}点以上`, c.lifeFlow.points, f.drawn && f.score >= c.lifeFlow.minScore ? 1 : 0, f.drawn ? `現在 ${f.score}点` : "未作図");
+      }
+      if (c.choreFlow) {
+        const f = m.flowEval.chore;
+        add(`家事動線 ${c.choreFlow.minScore}点以上`, c.choreFlow.points, f.drawn && f.score >= c.choreFlow.minScore ? 1 : 0, f.drawn ? `現在 ${f.score}点` : "未作図");
+      }
+      if (c.stairsAligned) {
+        const multi = real.some(r => (r.floor || 1) > 1);
+        add("階段の位置が上下階でそろっている", c.stairsAligned.points, multi && checkStairsAligned(appState) ? 1 : 0, multi ? (checkStairsAligned(appState) ? "OK" : "上下階の階段がずれています") : "2階以上の階段が未配置");
+      }
+      if (c.daylight) {
+        const d = m.daylightResult;
+        add(`居室の採光 ${c.daylight.minScore}点以上`, c.daylight.points, d.targets.length && d.score >= c.daylight.minScore ? 1 : 0, d.targets.length ? `現在 ${d.score}点` : "居室が未配置");
+      }
+      if (c.ldkSouth) {
+        const ok = checkSouthFacing(appState, "LDK") || checkSouthFacing(appState, "LIVING");
+        add("LDK(リビング)が南面している", c.ldkSouth.points, ok ? 1 : 0, ok ? "OK" : "南側に外壁面がありません");
+      }
+      const max = items.reduce((t, i) => t + i.pts, 0);
+      const got = items.reduce((t, i) => t + i.pts * i.frac, 0);
+      return { items, max, got: Math.round(got * 10) / 10, score: max > 0 ? Math.round(got / max * 100) : 0 };
+    }
+
+    // ===== 課題の読み込み =====
+    function parseAssignmentText(t) {
+      t = (t || "").trim();
+      let a;
+      const i = t.indexOf("MADORI-KADAI1:");
+      if (i >= 0) a = JSON.parse(decodeURIComponent(escape(atob(t.slice(i + 14).replace(/\s+/g, "")))));
+      else a = JSON.parse(t);
+      if (!a || a.format !== "madori-assignment") throw new Error("課題ファイルではありません");
+      return a;
+    }
+    function asgSummaryHtml(a) {
+      const c = a.conditions || {};
+      const n = ["fitSite","kenpei","yoseki","totalArea","floors","parking","lifeFlow","choreFlow","stairsAligned","daylight","ldkSouth"].filter(k => c[k]).length + (c.rooms || []).length;
+      const e = t => String(t == null ? "" : t).replace(/[&<>]/g, x => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[x]));
+      return `<b>${e(a.title)}</b>${a.author ? "（" + e(a.author) + "）" : ""}<br>条件 ${n} 項目`;
+    }
+    let __pendingAsg = null;
+    function startAssignment(a) {
+      const hasWork = appState.rooms.length > 0 || appState.fittings.length > 0 || appState.equipment.length > 0 || appState.flowLines.length > 0;
+      if (!hasWork) { applyAssignment(a, true); return; }
+      __pendingAsg = a;
+      document.getElementById("asgAskInfo").innerHTML = asgSummaryHtml(a);
+      document.getElementById("asgAskModal").classList.remove("hidden");
+    }
+    function applyAssignment(a, clear) {
+      saveHistory();
+      if (clear) {
+        appState.rooms = []; appState.fittings = []; appState.equipment = [];
+        appState.flowLines = []; appState.extraWalls = []; appState.removedWalls = [];
+        appState.selectedRoomId = null; appState.multiSelectedRoomIds = [];
+        appState.selectedFittingId = null; appState.multiSelectedFittingIds = [];
+        appState.selectedEquipmentId = null;
+      }
+      const sd = a.site || {};
+      const st = appState.site;
+      if (sd.pattern) st.pattern = sd.pattern;
+      st.roadWidths = Object.assign({ S: 6, N: 6, E: 6, W: 6 }, sd.roadWidths || {});
+      st.flag = Object.assign({}, SITE_FLAG_DEFAULT, sd.flag || {});
+      if (sd.width) st.width = sd.width;
+      if (sd.height) st.height = sd.height;
+      normalizeSite(st);
+      appState.gridModule = a.gridModule || "shaku";
+      appState.gridUnitM = typeof a.gridUnitM === "number" ? a.gridUnitM : 0.91;
+      const off = defaultSiteOffset(st); st.offsetX = off.x; st.offsetY = off.y;
+      const fl = a.conditions && a.conditions.floors ? a.conditions.floors.count : 0;
+      const topUsed = appState.rooms.reduce((mx, r) => Math.max(mx, r.floor || 1), 1);
+      appState.maxFloor = Math.max(1, Math.min(3, Math.max(fl || 1, topUsed)));
+      appState.currentFloor = 1;
+      appState.sideFloors = [];
+      appState.assignment = a;
+      appState.selectedScenarioId = "assignment";
+      const t = document.getElementById("currentScenarioTitle");
+      if (t) t.textContent = `課題: ${a.title}`;
+      closeScenarioModal();
+      try { renderFloorButtons(); } catch (e) {}
+      render();
+      try { fitSiteToView(); } catch (e) {}
+      try { switchTab("mission"); } catch (e) {}
+      showToast(`課題「${a.title}」を読み込みました`, "📨");
     }
 
     function modalSiteDims() {
@@ -4303,6 +4758,7 @@
       }
 
       Object.keys(ROOM_TYPES).forEach(key => {
+        if (isVoidType(key) && appState.currentFloor < 2) return; // 吹き抜けは2階以上のみ
         const room = ROOM_TYPES[key];
         const btn = document.createElement("button");
         btn.className = "w-full text-left p-2.5 rounded-xl border border-slate-800 hover:border-indigo-500 bg-slate-950/60 hover:bg-slate-800 transition flex items-center justify-between text-xs text-slate-200";
@@ -4350,6 +4806,7 @@
     let startPos = null;
 
     function onCanvasMouseDown(e) {
+      if (outsideMainPanel(e)) return; // 右に並べた参照用の階には作図できない
       const pos = getSvgGridPos(e);
       isMouseDown = true;
       startPos = pos;
@@ -4709,6 +5166,7 @@
     }
 
     function onCanvasMouseMove(e) {
+      if (!isMouseDown && outsideMainPanel(e)) return;
       if (dragData && dragData.kind === "site") { onSiteDragMove(getSvgGridPos(e)); return; }
       if (currentDrawMode === 'flow') { onFlowMouseMove(e); return; }
       if (currentDrawMode === 'equipment' && equipPlaceKey) {
@@ -5459,6 +5917,46 @@
         group.appendChild(row);
       }
 
+      // 隣に並べて表示する階の選択(参照のみ。作図は選択中の階だけ)
+      let picker = document.getElementById("sideFloorPicker");
+      if (!picker && addBtn) {
+        picker = document.createElement("div");
+        picker.id = "sideFloorPicker";
+        picker.className = "mt-2";
+        addBtn.insertAdjacentElement("afterend", picker);
+      }
+      if (picker) {
+        picker.innerHTML = "";
+        if (appState.maxFloor >= 2) {
+          const cap = document.createElement("div");
+          cap.className = "text-[10px] text-slate-400 mb-1 leading-tight";
+          cap.textContent = "隣に並べて表示(参照のみ)";
+          picker.appendChild(cap);
+          const row = document.createElement("div");
+          row.className = "flex gap-1";
+          appState.sideFloors = (appState.sideFloors || []).filter(f => f <= appState.maxFloor);
+          for (let f = 1; f <= appState.maxFloor; f++) {
+            const b = document.createElement("button");
+            b.type = "button";
+            const isCur = f === appState.currentFloor;
+            const on = !isCur && appState.sideFloors.includes(f);
+            b.className = "flex-1 text-[11px] py-1.5 rounded font-bold border transition " +
+              (isCur ? "bg-slate-900 text-slate-600 border-slate-800 cursor-not-allowed" : on ? "bg-amber-500 text-slate-900 border-amber-300" : "bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-700");
+            b.textContent = `${f}階`;
+            b.disabled = isCur;
+            b.title = isCur ? "編集中の階です" : (on ? `${f}階の表示をやめる` : `${f}階を隣に表示`);
+            b.addEventListener("click", () => {
+              const i = appState.sideFloors.indexOf(f);
+              if (i >= 0) appState.sideFloors.splice(i, 1); else appState.sideFloors.push(f);
+              renderFloorButtons();
+              render();
+            });
+            row.appendChild(b);
+          }
+          picker.appendChild(row);
+        }
+      }
+
       if (addBtn) {
         if (appState.maxFloor >= 3) {
           addBtn.classList.add("hidden");
@@ -5541,12 +6039,13 @@
       const cs = getComputedStyle(cont);
       const availW = cont.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
       const availH = cont.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
-      const ml = Math.max(0, (availW - CANVAS_W * z) / 2);
+      const cw = currentCanvasW();
+      const ml = Math.max(0, (availW - cw * z) / 2);
       const mt = Math.max(0, (availH - CANVAS_H * z) / 2);
       wrapper.style.marginLeft = ml + "px";
       wrapper.style.marginTop = mt + "px";
       // 拡大時も図面の下端・右端まで十分にスクロールして見えるよう、余白(画面下のバー等に隠れない分)を確保する
-      wrapper.style.marginRight = z < 1 ? ((z - 1) * CANVAS_W) + "px" : "0px";
+      wrapper.style.marginRight = z < 1 ? ((z - 1) * cw) + "px" : "0px";
       wrapper.style.marginBottom = z < 1 ? ((z - 1) * CANVAS_H) + "px" : "0px";
       // 図面の下端・右端の先にも余白を確保し、2本指で動かして最後まで見られるようにする
       let sp = document.getElementById("canvasScrollSpacer");
@@ -5559,7 +6058,7 @@
       }
       const padT = parseFloat(cs.paddingTop) || 0, padL = parseFloat(cs.paddingLeft) || 0;
       sp.style.top = (padT + mt + CANVAS_H * z + 240) + "px";
-      sp.style.left = (padL + ml + CANVAS_W * z + 120) + "px";
+      sp.style.left = (padL + ml + cw * z + 120) + "px";
     }
 
     function setZoom(level, keepCenter) {
@@ -5661,6 +6160,7 @@
         `;
         card.onclick = () => {
           appState.selectedScenarioId = sc.id;
+          appState.assignment = null;
           const scenarioTitleEl = document.getElementById("currentScenarioTitle");
           if (scenarioTitleEl) scenarioTitleEl.textContent = `シナリオ: ${sc.title}`;
           modal.classList.add("hidden");
@@ -5749,6 +6249,10 @@
             appState.gridUnitM = typeof data.gridUnitM === 'number' ? data.gridUnitM : 0.91;
             appState.maxFloor = data.maxFloor || 1;
             appState.compassAngle = typeof data.compassAngle === 'number' ? data.compassAngle : 0;
+            if (data.assignment && data.assignment.format === "madori-assignment") {
+              appState.assignment = data.assignment; appState.selectedScenarioId = "assignment";
+              const t = document.getElementById("currentScenarioTitle"); if (t) t.textContent = `課題: ${data.assignment.title}`;
+            }
             if (appState.currentFloor > appState.maxFloor) appState.currentFloor = 1;
             renderFloorButtons();
             updateCompassDisplay();
@@ -5894,6 +6398,8 @@
       appState.selectedFittingId = null; appState.multiSelectedFittingIds = [];
       appState.selectedEquipmentId = null;
       appState.maxFloor = 1; appState.currentFloor = 1;
+      appState.assignment = null; appState.selectedScenarioId = "free";
+      { const t = document.getElementById("currentScenarioTitle"); if (t) t.textContent = "シナリオ: 自由設計モード"; }
       appState.gridModule = "shaku"; appState.gridUnitM = 0.91;
       appState.compassAngle = 0;
       const st = appState.site;
@@ -6032,7 +6538,7 @@
 
       state.rooms.forEach(other => {
         // ポーチは採光を阻害する室として扱わない
-        if (other.id === room.id || other.floor !== room.floor || isExteriorType(other.type) || other.type === "PORCH") return;
+        if (other.id === room.id || other.floor !== room.floor || isExteriorType(other.type) || isVoidType(other.type) || other.type === "PORCH") return;
         const obox = getRoomBBox(other);
         const ox1 = obox.x, oy1 = obox.y, ox2 = obox.x + obox.w, oy2 = obox.y + obox.h;
         const EPS = 0.05;
@@ -7180,7 +7686,7 @@
     // 点が乗っている(外構以外の)室をすべて返す
     function flowRoomsAt(state, floor, p) {
       const cx = Math.floor(p.x), cy = Math.floor(p.y);
-      return state.rooms.filter(r => r.floor === floor && !isExteriorType(r.type) && roomCoversCell(r, cx, cy));
+      return state.rooms.filter(r => r.floor === floor && !isExteriorType(r.type) && !isVoidType(r.type) && roomCoversCell(r, cx, cy));
     }
 
     function flowOrient(a, b, c) { return (b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x); }
@@ -7272,7 +7778,7 @@
       const result = { kind: kindKey, name: def.name, drawn: lines.length > 0, score: 0, rank: "未作図", breakdown: { connect: 0, simple: 0, short: 0 }, checks: [] };
 
       const roleHasRoom = {};
-      roleKeys.forEach(k => { roleHasRoom[k] = state.rooms.some(r => !isExteriorType(r.type) && FLOW_ROLES[k].types.includes(r.type)); });
+      roleKeys.forEach(k => { roleHasRoom[k] = state.rooms.some(r => !isExteriorType(r.type) && !isVoidType(r.type) && FLOW_ROLES[k].types.includes(r.type)); });
 
       if (lines.length === 0) {
         roleKeys.forEach(k => result.checks.push({
@@ -7688,6 +8194,27 @@
       if (openScenarioBtn) openScenarioBtn.addEventListener("click", openScenarioModal);
       const closeScenarioModalBtn = document.getElementById("closeScenarioModal");
       if (closeScenarioModalBtn) closeScenarioModalBtn.addEventListener("click", closeScenarioModal);
+      (function wireAssignment() {
+        const $ = id => document.getElementById(id);
+        const fin = $("asgFileInput");
+        $("asgFileBtn").addEventListener("click", () => fin.click());
+        fin.addEventListener("change", e => {
+          const f = e.target.files[0]; if (!f) return;
+          const rd = new FileReader();
+          rd.onload = ev => { try { startAssignment(parseAssignmentText(ev.target.result)); } catch (err) { showToast("課題ファイルを読み込めませんでした: " + err.message, "❌"); } };
+          rd.readAsText(f);
+          e.target.value = "";
+        });
+        $("asgCodeBtn").addEventListener("click", () => { $("asgCodeText").value = ""; $("asgCodeErr").textContent = ""; $("asgCodeModal").classList.remove("hidden"); });
+        $("asgCodeCancel").addEventListener("click", () => $("asgCodeModal").classList.add("hidden"));
+        $("asgCodeOk").addEventListener("click", () => {
+          try { const a = parseAssignmentText($("asgCodeText").value); $("asgCodeModal").classList.add("hidden"); startAssignment(a); }
+          catch (err) { $("asgCodeErr").textContent = "課題コードを読み取れませんでした。コピーし直してください。(" + err.message + ")"; }
+        });
+        $("asgAskClear").addEventListener("click", () => { $("asgAskModal").classList.add("hidden"); if (__pendingAsg) applyAssignment(__pendingAsg, true); __pendingAsg = null; });
+        $("asgAskKeep").addEventListener("click", () => { $("asgAskModal").classList.add("hidden"); if (__pendingAsg) applyAssignment(__pendingAsg, false); __pendingAsg = null; });
+        $("asgAskCancel").addEventListener("click", () => { $("asgAskModal").classList.add("hidden"); __pendingAsg = null; });
+      })();
 
       const toggleSizeLabel = document.getElementById("toggleSizeLabel");
       if (toggleSizeLabel) {
